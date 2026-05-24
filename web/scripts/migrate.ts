@@ -1,8 +1,10 @@
+import './_load-env';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { neon } from '@neondatabase/serverless';
+import { configureNeonForLocalDev } from '../lib/db/configure-neon';
 
-function splitStatements(ddl: string): string[] {
+export function splitStatements(ddl: string): string[] {
   const stmts: string[] = [];
   let buf = '';
   let i = 0;
@@ -58,6 +60,7 @@ async function migrate() {
   const url = process.env.DATABASE_URL_UNPOOLED;
   if (!url) throw new Error('DATABASE_URL_UNPOOLED is not set');
 
+  configureNeonForLocalDev(url);
   const sql  = neon(url);
   const file = join(process.cwd(), 'lib/db/migrations/001_initial.sql');
   const ddl  = readFileSync(file, 'utf8');
@@ -80,4 +83,8 @@ async function migrate() {
   console.log('Migration complete.');
 }
 
-migrate().catch(err => { console.error(err); process.exit(1); });
+// Only auto-run when invoked directly (e.g. `npm run db:migrate`),
+// not when imported by tests.
+if (require.main === module) {
+  migrate().catch(err => { console.error(err); process.exit(1); });
+}

@@ -6,6 +6,8 @@ const nextConfig = {
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },   // Google avatars
       { protocol: 'https', hostname: 'pbs.twimg.com' },               // X avatars
       { protocol: 'https', hostname: 'graph.instagram.com' },         // Instagram avatars
+      // Dev-only: disk-backed upload stub serves from /uploads/*
+      { protocol: 'http',  hostname: 'localhost' },
     ],
   },
   experimental: {

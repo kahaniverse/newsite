@@ -1,4 +1,6 @@
+import './_load-env';
 import { neon } from '@neondatabase/serverless';
+import { configureNeonForLocalDev } from '../lib/db/configure-neon';
 
 const SYSTEM_AUTHOR_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -35,6 +37,7 @@ const STORIES: Array<{ universeSlug: string; title: string; synopsis: string }> 
 async function seed() {
   const url = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
   if (!url) throw new Error('DATABASE_URL is not set');
+  configureNeonForLocalDev(url);
   const sql = neon(url);
 
   // Idempotency check

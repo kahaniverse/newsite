@@ -2,8 +2,6 @@ import NextAuth, { type NextAuthConfig } from 'next-auth';
 import Google   from 'next-auth/providers/google';
 import Twitter  from 'next-auth/providers/twitter';
 import Credentials from 'next-auth/providers/credentials';
-import { UpstashRedisAdapter } from '@auth/upstash-redis-adapter';
-import { redis } from '@/lib/redis/client';
 import { getAuthorByAuthId, createAuthor, verifyPassword } from '@/lib/db/queries/authors';
 import { verifyTurnstile } from '@/lib/auth/turnstile';
 import { z } from 'zod';
@@ -39,8 +37,9 @@ const credentialsSchema = z.object({
 });
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: UpstashRedisAdapter(redis, { baseKeyPrefix: 'session:' }),
-  session: { strategy: 'database', maxAge: 30 * 24 * 60 * 60 },
+  // JWT sessions: required for Credentials provider in NextAuth v5.
+  // Redis is still used elsewhere (cache, rate limit, locks, password reset).
+  session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
 
   providers: [
     Google({
@@ -84,21 +83,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             avatarImage: user.image ?? undefined,
           });
         }
-        // Stash the canonical authId on the user so the session callback can find it.
-        (user as { authId?: string }).authId = authId;
-      } else if (account?.provider === 'credentials' && user.email) {
-        (user as { authId?: string }).authId = `email:${user.email.toLowerCase()}`;
       }
       return true;
     },
 
-    async session({ session, user }) {
-      // The adapter's `user.id` is the Upstash record id, not our authors.id.
-      // We stored the provider-scoped authId at sign-in; fall back to email for credential users.
-      const cached = (user as { authId?: string }).authId;
-      const authId = cached ?? (user.email ? `email:${user.email.toLowerCase()}` : null);
-      if (!authId) return session;
+    // Embed our internal authId in the JWT on first sign-in so the session
+    // callback can resolve the authors row on every request without a DB lookup
+    // chain through the adapter.
+    async jwt({ token, user, account }) {
+      if (user && account) {
+        if (account.type === 'oauth') {
+          token.authId = `${account.provider}:${account.providerAccountId}`;
+        } else if (account.provider === 'credentials' && user.email) {
+          token.authId = `email:${user.email.toLowerCase()}`;
+        }
+      }
+      return token;
+    },
 
+    async session({ session, token }) {
+      const authId = token.authId as string | undefined;
+      if (!authId) return session;
       const author = await getAuthorByAuthId(authId);
       if (author) {
         session.user.id          = author.id;

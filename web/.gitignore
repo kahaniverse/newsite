@@ -7,3 +7,13 @@ dist/
 *.log
 .DS_Store
 Thumbs.db
+
+# Local dev upload stub — anything inside is real user content
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Test artefacts
+test-results/
+playwright-report/
+playwright/.cache/
+coverage/

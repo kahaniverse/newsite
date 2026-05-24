@@ -1,5 +1,6 @@
 import { sql } from '@/lib/db/client';
 import { Genre, Universe } from '@/lib/types';
+import { parsePgTextArray } from '@/lib/db/parse';
 
 function rowToUniverse(row: Record<string, unknown>): Universe {
   return {
@@ -10,7 +11,7 @@ function rowToUniverse(row: Record<string, unknown>): Universe {
     coverImage:  row.cover_image as string,
     era:         row.era as string | undefined,
     world:       row.world as string | undefined,
-    genres:      (row.genres as Genre[]) ?? [],
+    genres:      parsePgTextArray(row.genres) as Genre[],
     creator: {
       id:          row.creator_id as string,
       displayName: row.creator_name as string,
@@ -41,6 +42,7 @@ export async function getUniverses({
 
   // "Featured" picks the most-viewed universes that have at least one story.
   const featuredFlag = featured ?? false;
+  const genreParam = genre ?? null;
   const rows = await sql`
     SELECT u.*,
            a.display_name AS creator_name,
@@ -48,7 +50,7 @@ export async function getUniverses({
     FROM universes u
     JOIN authors a ON a.id = u.creator_id
     WHERE (${q ?? null}::text IS NULL OR u.name ILIKE ${'%' + (q ?? '') + '%'})
-      AND (${genre ?? null}::text IS NULL OR ${genre ?? ''}::genre = ANY(u.genres))
+      AND (${genreParam}::text IS NULL OR ${genreParam}::genre = ANY(u.genres))
       AND (${featuredFlag}::boolean = false OR u.story_count > 0)
     ORDER BY
       CASE WHEN ${featuredFlag}::boolean THEN u.view_count + u.love_count ELSE u.view_count END DESC,
@@ -59,7 +61,7 @@ export async function getUniverses({
   const countRows = await sql`
     SELECT COUNT(*) AS total FROM universes u
     WHERE (${q ?? null}::text IS NULL OR u.name ILIKE ${'%' + (q ?? '') + '%'})
-      AND (${genre ?? null}::text IS NULL OR ${genre ?? ''}::genre = ANY(u.genres))
+      AND (${genreParam}::text IS NULL OR ${genreParam}::genre = ANY(u.genres))
       AND (${featuredFlag}::boolean = false OR u.story_count > 0)
   `;
 

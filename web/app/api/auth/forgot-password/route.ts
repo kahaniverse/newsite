@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createHash, randomBytes } from 'crypto';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email/client';
 import { redis } from '@/lib/redis/client';
 import { CacheKeys, TTL } from '@/lib/redis/cache';
 import { checkRateLimit, rateLimitIdentity } from '@/lib/redis/ratelimit';
 import { sql } from '@/lib/db/client';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const schema = z.object({ email: z.string().email() });
 
 export async function POST(req: NextRequest) {
@@ -34,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
 
-  await resend.emails.send({
+  await sendEmail({
     from:    'Kahaniverse <noreply@kahaniverse.com>',
     to:      email,
     subject: 'Reset your Kahaniverse password',

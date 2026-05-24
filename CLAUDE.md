@@ -26,7 +26,7 @@ lib/auth/config.ts · lib/types/index.ts · middleware.ts
 ```
 
 ## Auth
-Providers: `GoogleProvider`, `TwitterProvider` (X OAuth 2.0), custom Instagram OAuth2 (`https://api.instagram.com/oauth/authorize` scope `user_profile,user_media`). Credentials: bcrypt cost 12 + Cloudflare Turnstile on login. Sessions in Upstash Redis via `@auth/upstash-redis-adapter`, TTL 30d rolling. Password reset: signed JWT hash in Redis `pwreset:<hash>` TTL 15min via Resend.
+Providers: `GoogleProvider`, `TwitterProvider` (X OAuth 2.0), custom Instagram OAuth2 (`https://api.instagram.com/oauth/authorize` scope `user_profile,user_media`). Credentials: bcrypt cost 12 + Cloudflare Turnstile on login. Sessions are signed JWTs in cookies (NextAuth v5 requirement for Credentials provider), max-age 30d. Author rows are upserted in Postgres via the `signIn` callback; the internal `authors.auth_id` carries `<provider>:<providerAccountId>` for OAuth or `email:<lower-email>` for credentials. Password reset: SHA-256 hashed token in Redis `pwreset:<hash>` TTL 15min via Resend.
 
 Protected routes (redirect `/login?callbackUrl=`): `/profile/*`, `*/new`, all API POST/PATCH/DELETE.
 

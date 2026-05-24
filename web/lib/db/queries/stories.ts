@@ -1,5 +1,6 @@
 import { sql } from '@/lib/db/client';
 import { Story, ContributorRole, Genre } from '@/lib/types';
+import { parsePgTextArray } from '@/lib/db/parse';
 
 function rowToStory(row: Record<string, unknown>): Story {
   const contributors = (row.contributors as Array<{
@@ -11,7 +12,7 @@ function rowToStory(row: Record<string, unknown>): Story {
     title:    row.title as string,
     synopsis: row.synopsis as string,
     coverImage: row.cover_image as string | undefined,
-    genreTags:  (row.genre_tags as Genre[]) ?? [],
+    genreTags:  parsePgTextArray(row.genre_tags) as Genre[],
     status:   row.status as Story['status'],
     universe: {
       id:   row.universe_id as string,
