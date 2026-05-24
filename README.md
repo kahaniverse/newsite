@@ -1,6 +1,6 @@
 # Kahaniverse
 
-> **Read. Write. Collaborate. Get Discovered.**  
+> **Read. Write. Collaborate. Get Discovered.**
 > A collaborative short-story platform where authors build shared fictional universes.
 
 ---
@@ -13,18 +13,18 @@ Authors create **Universes** (shared worlds), write **Stories** within them, and
 
 ## Tech Stack
 
-| Layer | Choice |
-|---|---|
-| Framework | Next.js 14+ (App Router), TypeScript strict |
-| Hosting | Vercel Hobby |
-| Database | Neon PostgreSQL serverless (`@neondatabase/serverless`) |
-| Session / Cache | Upstash Redis (`@upstash/redis`, `@upstash/ratelimit`) |
-| Auth | NextAuth.js v5 — Google, X (Twitter), Instagram, Credentials |
-| Styling | Tailwind CSS + CSS variables |
-| Images | Vercel Blob |
-| Forms | React Hook Form + Zod |
-| State | Zustand (client) + React Query (server) |
-| Email | Resend |
+| Layer           | Choice                                                        |
+| --------------- | ------------------------------------------------------------- |
+| Framework       | Next.js 14+ (App Router), TypeScript strict                   |
+| Hosting         | Vercel Hobby                                                  |
+| Database        | Neon PostgreSQL serverless (`@neondatabase/serverless`)     |
+| Session / Cache | Upstash Redis (`@upstash/redis`, `@upstash/ratelimit`)    |
+| Auth            | NextAuth.js v5 — Google, X (Twitter), Instagram, Credentials |
+| Styling         | Tailwind CSS + CSS variables                                  |
+| Images          | Vercel Blob                                                   |
+| Forms           | React Hook Form + Zod                                         |
+| State           | Zustand (client) + React Query (server)                       |
+| Email           | Resend                                                        |
 
 ---
 
@@ -300,14 +300,15 @@ export interface Page {
 
 ## Authentication Detail
 
-| Provider | Package | Notes |
-|---|---|---|
-| Google | `next-auth/providers/google` | Standard |
-| X (Twitter) | `next-auth/providers/twitter` | OAuth 2.0; keys from developer.twitter.com |
-| Instagram | Custom OAuth2 provider | Endpoint: `https://api.instagram.com/oauth/authorize`; scope: `user_profile,user_media`; no localhost support — use ngrok locally |
-| Email/Password | `next-auth/providers/credentials` | bcrypt cost 12; Cloudflare Turnstile CAPTCHA on login |
+| Provider       | Package                             | Notes                                                                                                                                 |
+| -------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Google         | `next-auth/providers/google`      | Standard                                                                                                                              |
+| X (Twitter)    | `next-auth/providers/twitter`     | OAuth 2.0; keys from developer.twitter.com                                                                                            |
+| Instagram      | Custom OAuth2 provider              | Endpoint:`https://api.instagram.com/oauth/authorize`; scope: `user_profile,user_media`; no localhost support — use ngrok locally |
+| Email/Password | `next-auth/providers/credentials` | bcrypt cost 12; Cloudflare Turnstile CAPTCHA on login                                                                                 |
 
 OAuth callback URLs to register with each provider:
+
 ```
 https://kahaniverse.com/api/auth/callback/google
 https://kahaniverse.com/api/auth/callback/twitter
@@ -318,24 +319,24 @@ https://kahaniverse.com/api/auth/callback/instagram
 
 ## Redis Cache Reference
 
-| Purpose | Key Pattern | TTL |
-|---|---|---|
-| Session | `session:<sessionId>` | 30 days rolling |
-| Featured universes | `cache:universes:featured` | 5 min |
-| Story list page | `cache:stories:page:<n>` | 2 min |
-| Author profile | `cache:author:<id>` | 10 min |
-| Reaction dedup lock | `lock:reaction:<uid>:<type>:<tid>` | 1 s |
-| Password reset token | `pwreset:<hashedToken>` | 15 min |
+| Purpose              | Key Pattern                          | TTL             |
+| -------------------- | ------------------------------------ | --------------- |
+| Session              | `session:<sessionId>`              | 30 days rolling |
+| Featured universes   | `cache:universes:featured`         | 5 min           |
+| Story list page      | `cache:stories:page:<n>`           | 2 min           |
+| Author profile       | `cache:author:<id>`                | 10 min          |
+| Reaction dedup lock  | `lock:reaction:<uid>:<type>:<tid>` | 1 s             |
+| Password reset token | `pwreset:<hashedToken>`            | 15 min          |
 
 ---
 
 ## Responsive Shell Breakpoints
 
-| Breakpoint | Shell | Layout |
-|---|---|---|
-| ≥ 1024px | `WideShell` | 3-column: 280px fixed · flex centre · 320px fixed |
-| 768–1023px | `MediumShell` | 56px icon rail + 2 panels stacked vertically |
-| < 768px | `NarrowShell` | Single column; each panel is a router push |
+| Breakpoint  | Shell           | Layout                                              |
+| ----------- | --------------- | --------------------------------------------------- |
+| ≥ 1024px   | `WideShell`   | 3-column: 280px fixed · flex centre · 320px fixed |
+| 768–1023px | `MediumShell` | 56px icon rail + 2 panels stacked vertically        |
+| < 768px     | `NarrowShell` | Single column; each panel is a router push          |
 
 ---
 
@@ -360,7 +361,7 @@ Headings: `Georgia, 'Times New Roman', serif` · Body: system sans-serif · Card
 ## NPM Scripts
 
 ```bash
-npm run dev          # local dev server
+ npm run dev          # local dev server
 npm run build        # production build
 npm run db:migrate   # apply migrations (uses DATABASE_URL_UNPOOLED)
 npm run db:seed      # insert seed data (idempotent)
@@ -371,6 +372,7 @@ npm run db:seed      # insert seed data (idempotent)
 ## Seed Data
 
 `npm run db:seed` inserts (idempotent — checks before inserting):
+
 - System author: `id = 00000000-0000-0000-0000-000000000001`, `display_name = 'Kahaniverse'`
 - 3 Universes: **Exodus 2120** (scienceFiction), **The Ember Courts** (fantasy), **Deva Protocol** (scienceFiction)
 - 2 Stories per universe, 1 root Page per story
@@ -390,10 +392,10 @@ npm run db:seed      # insert seed data (idempotent)
 
 ## Open Questions
 
-| # | Question |
-|---|---|
+| # | Question                                                                                                                  |
+| - | ------------------------------------------------------------------------------------------------------------------------- |
 | 1 | Instagram Basic Display API deprecated by Meta late 2024 — confirm Meta Login (Graph API) as replacement before building |
-| 2 | Cover image aspect ratio — standardise 16:9 or 4:3? |
-| 3 | Who can publish a story — creator only, or any contributor? |
-| 4 | Count anonymous views, or authenticated only? |
-| 5 | Neon free tier is 0.5 GB — confirm seed + early content fits |
+| 2 | Cover image aspect ratio — standardise 16:9 or 4:3?                                                                      |
+| 3 | Who can publish a story — creator only, or any contributor?                                                              |
+| 4 | Count anonymous views, or authenticated only?                                                                             |
+| 5 | Neon free tier is 0.5 GB — confirm seed + early content fits                                                             |
