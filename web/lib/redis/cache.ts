@@ -1,0 +1,43 @@
+import { redis } from './client';
+
+export const TTL = {
+  featuredUniverses: 300,   // 5 min
+  storyPage:         120,   // 2 min
+  authorProfile:     600,   // 10 min
+  reactionLock:      1,     // 1 s
+  passwordReset:     900,   // 15 min
+} as const;
+
+export async function getCache<T>(key: string): Promise<T | null> {
+  try {
+    const val = await redis.get<T>(key);
+    return val ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setCache<T>(key: string, value: T, ttlSeconds: number): Promise<void> {
+  try {
+    await redis.setex(key, ttlSeconds, value);
+  } catch {
+    // cache failures are non-fatal
+  }
+}
+
+export async function invalidateCache(keys: string[]): Promise<void> {
+  try {
+    if (keys.length) await redis.del(...keys);
+  } catch {
+    // non-fatal
+  }
+}
+
+export const CacheKeys = {
+  featuredUniverses:          () => 'cache:universes:featured',
+  storyListPage:   (n: number) => `cache:stories:page:${n}`,
+  authorProfile:    (id: string) => `cache:author:${id}`,
+  reactionLock:    (uid: string, type: string, tid: string) =>
+                    `lock:reaction:${uid}:${type}:${tid}`,
+  passwordReset:   (hash: string) => `pwreset:${hash}`,
+};
