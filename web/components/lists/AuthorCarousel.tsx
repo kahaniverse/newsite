@@ -2,11 +2,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { SquareCard } from '@/components/cards/SquareCard';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { usePanelStore } from '@/store';
 import type { Author, PaginatedResponse } from '@/lib/types';
 
 interface Props { initialAuthors?: Author[] }
 
 export function AuthorCarousel({ initialAuthors }: Props) {
+  const { selectionKind, selectedAuthorId, selectAuthor } = usePanelStore();
+
   const { data, isLoading } = useQuery<PaginatedResponse<Author>>({
     queryKey: ['authors', 'top'],
     queryFn:  () => fetch('/api/authors?limit=20').then(r => r.json()),
@@ -36,7 +39,11 @@ export function AuthorCarousel({ initialAuthors }: Props) {
     >
       {authors.map(a => (
         <div key={a.id} role="listitem" className="snap-start shrink-0">
-          <SquareCard author={a} />
+          <SquareCard
+            author={a}
+            onClick={() => selectAuthor(a.id)}
+            selected={selectionKind === 'author' && selectedAuthorId === a.id}
+          />
         </div>
       ))}
     </div>

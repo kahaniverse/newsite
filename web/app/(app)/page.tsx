@@ -4,18 +4,17 @@ import { NarrowShell } from '@/components/shell/NarrowShell';
 import { BrowsePanel }       from '@/components/panels/BrowsePanel';
 import { EntityDetailPanel } from '@/components/panels/EntityDetailPanel';
 import { LeafPanel }         from '@/components/panels/LeafPanel';
-import { AuthCard }          from '@/components/auth/AuthCard';
-import { HeroCarousel }      from '@/components/lists/HeroCarousel';
 import { auth }              from '@/lib/auth/config';
-import { getUniverses, getUniverseCount } from '@/lib/db/queries/universes';
+import { getUniverses }      from '@/lib/db/queries/universes';
 
 export const revalidate = 300;
 
+// Unauthenticated visitors are rewritten to /index.html by middleware,
+// so this page only renders for signed-in users.
 export default async function HomePage() {
-  const [session, { data: universes }, universeCount] = await Promise.all([
+  const [session, { data: universes }] = await Promise.all([
     auth(),
     getUniverses({ page: 1, limit: 5 }),
-    getUniverseCount(),
   ]);
 
   return (
@@ -41,24 +40,10 @@ export default async function HomePage() {
         </MediumShell>
       </div>
 
-      {/* Narrow layout (<768px) — signed-in users see the browse panel, others see the landing card */}
+      {/* Narrow layout (<768px) */}
       <div className="block md:hidden">
         <NarrowShell session={session}>
-          {session ? (
-            <BrowsePanel initialUniverses={universes} />
-          ) : (
-            <div className="flex flex-col gap-8">
-              <section aria-label="Story universes">
-                <h1 className="font-serif text-2xl font-bold text-text-primary mb-4">
-                  Read. Write. <em>Collaborate.</em><br />Get Discovered.
-                </h1>
-                <HeroCarousel initialUniverses={universes} />
-              </section>
-              <section aria-label="Sign in or create account">
-                <AuthCard universeCount={universeCount} />
-              </section>
-            </div>
-          )}
+          <BrowsePanel initialUniverses={universes} />
         </NarrowShell>
       </div>
     </>

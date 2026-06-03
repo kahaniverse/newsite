@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { StoryCard } from '@/components/cards/StoryCard';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import { useInfiniteStories } from '@/hooks/useInfiniteStories';
+import { usePanelStore } from '@/store';
 import type { Story } from '@/lib/types';
 
 interface Props {
@@ -16,6 +17,8 @@ interface Props {
 export function StoryList({ universeId, status = 'published', q, onSelect, initialData }: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteStories({ universeId, status, q });
+
+  const selectedStoryId = usePanelStore(s => s.selectedStoryId);
 
   const sentinel = useRef<HTMLDivElement>(null);
 
@@ -55,6 +58,7 @@ export function StoryList({ universeId, status = 'published', q, onSelect, initi
           key={story.id}
           story={story}
           onClick={() => onSelect?.(story)}
+          selected={selectedStoryId === story.id}
         />
       ))}
       <div ref={sentinel} className="h-4" aria-hidden />

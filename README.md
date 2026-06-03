@@ -361,7 +361,7 @@ Headings: `Georgia, 'Times New Roman', serif` · Body: system sans-serif · Card
 ## NPM Scripts
 
 ```bash
- npm run dev          # local dev server
+npm run dev          # local dev server
 npm run build        # production build
 npm run db:migrate   # apply migrations (uses DATABASE_URL_UNPOOLED)
 npm run db:seed      # insert seed data (idempotent)

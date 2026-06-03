@@ -4,6 +4,7 @@ import type { Session } from 'next-auth';
 import { auth } from '@/lib/auth/config';
 import { NavUserMenu } from '@/components/auth/NavUserMenu';
 import { ToastContainer } from '@/components/ui/Toast';
+import { CreateLink } from '@/components/shell/CreateLink';
 
 interface Props {
   children: [React.ReactNode, React.ReactNode, React.ReactNode];
@@ -30,7 +31,7 @@ export async function WideShell({ children, session: sessionProp }: Props) {
           <Link href="/"          className="text-sm text-text-muted hover:text-text-primary transition-colors">Browse</Link>
           <Link href="/discover"  className="text-sm text-text-muted hover:text-text-primary transition-colors">Discover</Link>
           <Link href="/authors"   className="text-sm text-text-muted hover:text-text-primary transition-colors">Authors</Link>
-          <Link href="/universes/new" className="text-sm text-text-muted hover:text-text-primary transition-colors">+ Universe</Link>
+          <CreateLink className="text-sm text-text-muted hover:text-text-primary transition-colors">+ Create</CreateLink>
         </div>
 
         <div className="flex items-center gap-4">
@@ -39,12 +40,12 @@ export async function WideShell({ children, session: sessionProp }: Props) {
         </div>
       </nav>
 
-      {/* Three-column body */}
+      {/* Three-column body — left and centre share width 1:1, right is fixed */}
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-[280px] shrink-0 overflow-y-auto border-r border-border p-4">
+        <aside className="flex-1 min-w-0 overflow-y-auto border-r border-border p-4">
           {left}
         </aside>
-        <main className="flex-1 overflow-y-auto p-4 border-r border-border">
+        <main className="flex-1 min-w-0 overflow-y-auto p-4 border-r border-border">
           {centre}
         </main>
         <aside className="w-[320px] shrink-0 overflow-y-auto p-4">

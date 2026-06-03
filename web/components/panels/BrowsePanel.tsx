@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { HeroCarousel } from '@/components/lists/HeroCarousel';
 import { AuthorCarousel } from '@/components/lists/AuthorCarousel';
 import { StoryList } from '@/components/lists/StoryList';
@@ -13,10 +14,16 @@ interface Props {
 
 export function BrowsePanel({ initialUniverses, searchQuery }: Props) {
   const { selectUniverse, selectStory } = usePanelStore();
+  const router = useRouter();
 
   function handleStorySelect(story: Story) {
-    selectUniverse(story.universe.slug);
+    selectUniverse(story.universe.slug, story.universe.id);
     selectStory(story.id);
+    // On narrow viewports there is no detail panel; stack the story
+    // detail by routing to its dedicated page.
+    if (typeof window !== 'undefined' && !window.matchMedia('(min-width: 768px)').matches) {
+      router.push(`/stories/${story.id}`);
+    }
   }
 
   return (

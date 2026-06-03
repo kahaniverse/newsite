@@ -3,6 +3,7 @@ import { notFound }    from 'next/navigation';
 import { NarrowShell } from '@/components/shell/NarrowShell';
 import { PageCard }    from '@/components/cards/PageCard';
 import { PageList }    from '@/components/lists/PageList';
+import { HydrateSelection } from '@/components/shell/HydrateSelection';
 import { getPageById } from '@/lib/db/queries/pages';
 
 interface Props { params: { id: string } }
@@ -19,6 +20,17 @@ export default async function PageDetailPage({ params }: Props) {
 
   return (
     <NarrowShell>
+      <HydrateSelection
+        storyId={page.storyId}
+        pageId={page.id}
+        detailMeta={{
+          kind:     'page',
+          pageId:   page.id,
+          storyId:  page.storyId,
+          parentId: page.parentId,
+          authorId: page.author.id,
+        }}
+      />
       <div className="flex flex-col gap-5 py-4">
         <PageCard page={page} />
         {page.children.length > 0 && (

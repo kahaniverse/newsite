@@ -11,12 +11,31 @@ import type { Page, Author } from '@/lib/types';
 import { useQuery } from '@tanstack/react-query';
 
 export function LeafPanel() {
-  const { selectedStoryId, selectedPageId, selectPage } = usePanelStore();
+  const { selectedStoryId, selectedPageId, selectPage, setDetailMeta } = usePanelStore();
   const [page, setPage] = useState<Page | null>(null);
   const [loading, setLoading]   = useState(false);
 
   // Fetch root pages of story when story selected but no page yet
   const [rootPage, setRootPage] = useState<Page | null>(null);
+
+  // Hydrate detailMeta so the narrow shell's bottom nav can offer
+  // Extend Story / Add Next / Alter This / Edit appropriately.
+  useEffect(() => {
+    if (page) {
+      setDetailMeta({
+        kind:     'page',
+        pageId:   page.id,
+        storyId:  page.storyId,
+        parentId: page.parentId,
+        authorId: page.author.id,
+      });
+    } else if (selectedStoryId) {
+      setDetailMeta({ kind: 'story', storyId: selectedStoryId });
+    } else {
+      setDetailMeta(null);
+    }
+    return () => setDetailMeta(null);
+  }, [page?.id, selectedStoryId, setDetailMeta]); // eslint-disable-line
 
   useEffect(() => {
     if (!selectedStoryId) return;

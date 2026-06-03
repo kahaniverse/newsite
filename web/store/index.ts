@@ -84,24 +84,66 @@ export const useToastStore = create<ToastState>((set) => ({
 }));
 
 // ── Panel navigation store (wide/medium layouts) ──────────────
+// `selectionKind` drives what the detail panel renders; an author selection
+// and a universe selection are mutually exclusive at the top level, while
+// story/page nest under a universe selection.
+type SelectionKind = 'universe' | 'author' | null;
+
+// What the narrow shell's stacked detail view is currently showing.
+// Populated by detail screens so the bottom nav can offer the right
+// action (Extend Story / Add Next / Alter This / Edit).
+export interface DetailMeta {
+  kind:      'story' | 'page';
+  storyId?:  string;
+  pageId?:   string;
+  parentId?: string | null;
+  authorId?: string;
+}
+
 interface PanelState {
+  selectionKind:        SelectionKind;
   selectedUniverseSlug: string | null;
+  selectedUniverseId:   string | null;
+  selectedAuthorId:     string | null;
   selectedStoryId:      string | null;
   selectedPageId:       string | null;
-  selectUniverse:  (slug: string) => void;
+  detailMeta:           DetailMeta | null;
+  selectUniverse:  (slug: string, id?: string | null) => void;
+  selectAuthor:    (id: string)   => void;
   selectStory:     (id: string)   => void;
   selectPage:      (id: string)   => void;
   clearStory:      () => void;
   clearPage:       () => void;
+  setDetailMeta:   (meta: DetailMeta | null) => void;
 }
 
 export const usePanelStore = create<PanelState>((set) => ({
+  selectionKind:        null,
   selectedUniverseSlug: null,
+  selectedUniverseId:   null,
+  selectedAuthorId:     null,
   selectedStoryId:      null,
   selectedPageId:       null,
-  selectUniverse: (slug) => set({ selectedUniverseSlug: slug, selectedStoryId: null, selectedPageId: null }),
+  detailMeta:           null,
+  selectUniverse: (slug, id = null) => set({
+    selectionKind:        'universe',
+    selectedUniverseSlug: slug,
+    selectedUniverseId:   id,
+    selectedAuthorId:     null,
+    selectedStoryId:      null,
+    selectedPageId:       null,
+  }),
+  selectAuthor:   (id)   => set({
+    selectionKind:        'author',
+    selectedAuthorId:     id,
+    selectedUniverseSlug: null,
+    selectedUniverseId:   null,
+    selectedStoryId:      null,
+    selectedPageId:       null,
+  }),
   selectStory:    (id)   => set({ selectedStoryId: id, selectedPageId: null }),
   selectPage:     (id)   => set({ selectedPageId: id }),
   clearStory:     ()     => set({ selectedStoryId: null, selectedPageId: null }),
   clearPage:      ()     => set({ selectedPageId: null }),
+  setDetailMeta:  (meta) => set({ detailMeta: meta }),
 }));

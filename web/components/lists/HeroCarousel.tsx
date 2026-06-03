@@ -1,7 +1,9 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Universe } from '@/lib/types';
 import { GENRE_LABELS } from '@/lib/types';
+import { usePanelStore } from '@/store';
 
 const FALLBACK: Universe[] = [
   {
@@ -21,6 +23,8 @@ export function HeroCarousel({ initialUniverses }: Props) {
   const [current, setCurrent]     = useState(0);
   const [paused, setPaused]       = useState(false);
   const intervalRef               = useRef<ReturnType<typeof setInterval> | null>(null);
+  const router                    = useRouter();
+  const { selectionKind, selectedUniverseSlug, selectUniverse } = usePanelStore();
 
   // Fetch from API if no SSR data provided
   useEffect(() => {
@@ -44,14 +48,45 @@ export function HeroCarousel({ initialUniverses }: Props) {
 
   const u = universes[current];
 
+  // On first mount (and whenever the data set first loads), seed the
+  // detail panel with the currently-visible universe so the middle column
+  // has something to show without forcing the user to click.
+  useEffect(() => {
+    if (!u) return;
+    if (selectionKind === null) selectUniverse(u.slug, u.id);
+  }, [u?.slug, selectionKind, selectUniverse]); // eslint-disable-line
+
+  // User-initiated slide change → update the detail panel.
+  const pick = useCallback((idx: number) => {
+    goTo(idx);
+    const target = universes[(idx + universes.length) % universes.length];
+    if (target) selectUniverse(target.slug, target.id);
+  }, [goTo, universes, selectUniverse]);
+
+  // Clicking the book: select in the detail-panel store on wide/medium
+  // (where the middle column actually shows it), or route to the dedicated
+  // universe page on narrow layouts where there is no detail panel.
+  const openUniverse = useCallback(() => {
+    if (!u) return;
+    selectUniverse(u.slug, u.id);
+    if (typeof window !== 'undefined' && !window.matchMedia('(min-width: 768px)').matches) {
+      router.push(`/universes/${u.slug}`);
+    }
+  }, [u, selectUniverse, router]);
+
+  const isActive = selectionKind === 'universe' && selectedUniverseSlug === u?.slug;
+
   return (
     <div
-      className="book-wrapper"
-      role="region"
-      aria-label="Story carousel"
+      className={`book-wrapper cursor-pointer${isActive ? ' is-selected' : ''}`}
+      role="link"
+      aria-label={`Open ${u?.name ?? 'universe'}`}
       aria-live="polite"
+      tabIndex={0}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      onClick={openUniverse}
+      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && openUniverse()}
     >
       {/* Skeuomorphic book — DOM structure matches index.html exactly so CSS applies */}
       <div id="skwrapper">
@@ -92,7 +127,7 @@ export function HeroCarousel({ initialUniverses }: Props) {
         <button
           className="carousel-btn"
           id="prevBtn"
-          onClick={() => goTo(current - 1)}
+          onClick={(e) => { e.stopPropagation(); pick(current - 1); }}
           aria-label="Previous story"
         >
           &#8592;
@@ -107,7 +142,7 @@ export function HeroCarousel({ initialUniverses }: Props) {
               role="tab"
               aria-label={`Story ${i + 1}`}
               aria-selected={i === current}
-              onClick={() => goTo(i)}
+              onClick={(e) => { e.stopPropagation(); pick(i); }}
             />
           ))}
         </div>
@@ -115,7 +150,7 @@ export function HeroCarousel({ initialUniverses }: Props) {
         <button
           className="carousel-btn"
           id="nextBtn"
-          onClick={() => goTo(current + 1)}
+          onClick={(e) => { e.stopPropagation(); pick(current + 1); }}
           aria-label="Next story"
         >
           &#8594;

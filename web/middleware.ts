@@ -25,6 +25,12 @@ export default auth((req) => {
   const method        = req.method.toUpperCase();
   const isAuthed      = !!req.auth?.user;
 
+  // Unauthenticated visitors to "/" get the static landing page in /public/index.html.
+  // Authed users fall through to the dynamic dashboard rendered by app/(app)/page.tsx.
+  if (pathname === '/' && method === 'GET' && !isAuthed) {
+    return NextResponse.rewrite(new URL('/index.html', req.url));
+  }
+
   const isProtectedPage = PROTECTED_PAGE_PATTERNS.some(p => p.test(pathname));
   if (isProtectedPage && !isAuthed) {
     const loginUrl = new URL('/login', req.url);

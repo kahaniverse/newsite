@@ -1,0 +1,32 @@
+[
+  {
+    "title": "Exodus 2120",
+    "genre": "Science Fiction",
+    "genreTag": "Sci-Fi · Space Opera",
+    "image": "images/exodus.jpeg",
+    "imageAlt": "Spaceships leaving Earth in Exodus 2120",
+    "leftText": "The world is ending. Some of humanity escapes on generational starships bound for new planetary systems. These are the stories of those who did — and those left behind.",
+    "rightText": "Explore themes of survival, identity, and what it means to be human when everything familiar is left behind. Add your chapter to this living universe.",
+    "quote": "\"Every universe needs its storyteller.\""
+  },
+  {
+    "title": "Lockdown",
+    "genre": "Dystopia",
+    "genreTag": "Dystopia · Thriller",
+    "image": "images/lockdown.jpeg",
+    "imageAlt": "Doctor wearing mask and Corona virus",
+    "leftText": "A global pandemic rewrites the rules of society. In a world of masks and borders, ordinary people navigate extraordinary choices. Whose side are you on?",
+    "rightText": "Stories set in the lockdown era explore fear, community, resistance, and survival. Add your perspective — your character is waiting to be born.",
+    "quote": "\"The smallest voices carry the greatest truths.\""
+  },
+  {
+    "title": "Being Super",
+    "genre": "Mythology · Superhero",
+    "genreTag": "Mythology · Fantasy",
+    "image": "images/kaali.jpeg",
+    "imageAlt": "Goddess Kaali resembling Good and Evil side of super-powers",
+    "leftText": "A cosmic alignment — once in 5,000 years — grants random people super-powers. The last one gave us gods and demons of Greek & Hindu mythologies. This time it's your neighbour. Or you.",
+    "rightText": "Rooted in Greek and Hindu mythology, this universe explores whether power reveals or corrupts character. Heroes. Villains. The line between them is yours to draw.",
+    "quote": "\"Power doesn't change you. It reveals you.\""
+  }
+]

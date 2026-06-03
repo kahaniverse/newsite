@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,27 +11,61 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-export function PageForm() {
-  const router   = useRouter();
-  const params   = useSearchParams();
-  const storyId  = params.get('storyId') ?? '';
-  const parentId = params.get('parentId') ?? '';
-  const [serverErr, setServerErr] = useState('');
+interface Props {
+  editPageId?: string;
+}
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
+export function PageForm({ editPageId }: Props = {}) {
+  const router      = useRouter();
+  const params      = useSearchParams();
+  const storyId     = params.get('storyId') ?? '';
+  const parentId    = params.get('parentId') ?? '';
+  const intent      = params.get('intent');         // 'next' | 'alter' | null
+  const isEdit      = !!editPageId;
+  const isAlternate = intent === 'alter' || (!intent && !!parentId && parentId !== storyId);
+  const [serverErr, setServerErr] = useState('');
+  const [loadingExisting, setLoadingExisting] = useState(isEdit);
+
+  const { register, handleSubmit, watch, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
   const content = watch('content', '');
-  const isAlternate = !!parentId && parentId !== storyId;
+
+  // In edit mode, hydrate the form with the existing page's content.
+  useEffect(() => {
+    if (!editPageId) return;
+    setLoadingExisting(true);
+    fetch(`/api/pages/${editPageId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) reset({ content: d.content, illustration: d.illustration ?? '' }); })
+      .finally(() => setLoadingExisting(false));
+  }, [editPageId, reset]);
 
   async function onSubmit(data: FormData) {
-    if (!storyId || !parentId) { setServerErr('Story or parent ID missing from URL.'); return; }
     setServerErr('');
+    const body = { content: data.content, illustration: data.illustration || undefined };
+
+    if (isEdit) {
+      const res = await fetch(`/api/pages/${editPageId}`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        setServerErr(json.error ?? 'Failed to save page.');
+        return;
+      }
+      router.push(`/pages/${editPageId}`);
+      return;
+    }
+
+    if (!storyId || !parentId) { setServerErr('Story or parent ID missing from URL.'); return; }
     const res = await fetch('/api/pages', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ storyId, parentId, content: data.content, illustration: data.illustration || undefined }),
+      body:    JSON.stringify({ storyId, parentId, ...body }),
     });
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
@@ -42,18 +76,26 @@ export function PageForm() {
     router.push(`/pages/${page.id}`);
   }
 
+  const heading = isEdit
+    ? 'Edit Page'
+    : isAlternate
+      ? 'Add an Alternate Path'
+      : 'Continue the Story';
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 max-w-xl" noValidate>
       <div>
-        <h1 className="font-serif text-2xl font-bold text-text-primary">
-          {isAlternate ? 'Add an Alternate Path' : 'Continue the Story'}
-        </h1>
-        {isAlternate && (
+        <h1 className="font-serif text-2xl font-bold text-text-primary">{heading}</h1>
+        {isAlternate && !isEdit && (
           <p className="text-sm text-text-muted mt-1">
             You are adding an alternate version of this page. Readers will be able to choose between paths.
           </p>
         )}
       </div>
+
+      {loadingExisting && (
+        <p className="text-xs text-text-muted">Loading current content…</p>
+      )}
 
       <div className="flex flex-col gap-1">
         <label className="text-xs font-medium text-text-muted" htmlFor="pageContent">
@@ -84,9 +126,9 @@ export function PageForm() {
       {serverErr && <p className="text-sm text-error">{serverErr}</p>}
 
       <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={isSubmitting}
+        <button type="submit" disabled={isSubmitting || loadingExisting}
           className="bg-accent hover:bg-accent-light text-white font-semibold py-2.5 px-6 rounded-btn text-sm transition-colors disabled:opacity-60">
-          {isSubmitting ? 'Publishing…' : 'Publish Page'}
+          {isSubmitting ? (isEdit ? 'Saving…' : 'Publishing…') : (isEdit ? 'Save Changes' : 'Publish Page')}
         </button>
         <button type="button" onClick={() => router.back()}
           className="border border-border text-text-muted hover:text-text-primary py-2.5 px-6 rounded-btn text-sm transition-colors">

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound }    from 'next/navigation';
 import { NarrowShell } from '@/components/shell/NarrowShell';
 import { LeafPanel }   from '@/components/panels/LeafPanel';
+import { HydrateSelection } from '@/components/shell/HydrateSelection';
 import { getStoryById } from '@/lib/db/queries/stories';
 
 interface Props { params: { id: string } }
@@ -22,6 +23,7 @@ export default async function StoryPage({ params }: Props) {
 
   return (
     <NarrowShell>
+      <HydrateSelection storyId={story.id} detailMeta={{ kind: 'story', storyId: story.id }} />
       <LeafPanel />
     </NarrowShell>
   );

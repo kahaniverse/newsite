@@ -5,7 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { SocialAuthButtons } from './SocialAuthButtons';
 import { TurnstileWidget } from './TurnstileWidget';
 
@@ -46,51 +45,39 @@ export function LoginForm() {
     router.refresh();
   }
 
+  const error = serverErr || errors.email?.message || errors.password?.message;
+
   return (
-    <form className="auth-form flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
-      <div className="field-group flex flex-col gap-1">
-        <label className="field-label text-xs font-medium text-text-muted" htmlFor="loginEmail">Email</label>
+    <form className="auth-form" onSubmit={handleSubmit(onSubmit)} noValidate>
+      <div className="field-group">
+        <label className="field-label" htmlFor="loginEmail">Email</label>
         <input
-          className="field-input w-full bg-bg-elevated border border-border rounded-input px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent"
+          className="field-input"
           id="loginEmail" type="email" autoComplete="email"
           placeholder="your@email.com" {...register('email')}
         />
-        {errors.email && <span className="text-xs text-error">{errors.email.message}</span>}
       </div>
 
-      <div className="field-group flex flex-col gap-1">
-        <label className="field-label text-xs font-medium text-text-muted" htmlFor="loginPassword">Password</label>
+      <div className="field-group">
+        <label className="field-label" htmlFor="loginPassword">Password</label>
         <input
-          className="field-input w-full bg-bg-elevated border border-border rounded-input px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent"
+          className="field-input"
           id="loginPassword" type="password" autoComplete="current-password"
           placeholder="••••••••" {...register('password')}
         />
-        {errors.password && <span className="text-xs text-error">{errors.password.message}</span>}
       </div>
 
       <TurnstileWidget onToken={setCaptchaToken} onExpire={() => setCaptchaToken(null)} />
 
-      {serverErr && <p className="text-xs text-error">{serverErr}</p>}
+      {error && <p className="auth-error" role="alert">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="auth-cta w-full bg-accent hover:bg-accent-light text-white font-semibold py-2.5 rounded-btn text-sm transition-colors disabled:opacity-60"
-      >
+      <button type="submit" disabled={isSubmitting} className="auth-cta">
         {isSubmitting ? 'Signing in…' : 'Enter the Universe →'}
       </button>
 
-      <div className="auth-divider flex items-center gap-3 text-text-muted text-xs">
-        <span className="flex-1 border-t border-border" />
-        <span>or</span>
-        <span className="flex-1 border-t border-border" />
-      </div>
+      <div className="auth-divider"><span>or</span></div>
 
       <SocialAuthButtons callbackUrl={callbackUrl} />
-
-      <p className="text-center text-xs text-text-muted">
-        <Link href="/forgot-password" className="hover:text-accent transition-colors">Forgot password?</Link>
-      </p>
     </form>
   );
 }

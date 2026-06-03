@@ -1,24 +1,32 @@
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { ToastContainer } from '@/components/ui/Toast';
 import Link from 'next/link';
+import '@/styles/auth.css';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <QueryProvider>
-      <div className="min-h-screen bg-bg-primary flex flex-col">
-        <header className="flex items-center px-6 py-4 border-b border-border">
-          <Link href="/" className="flex items-center gap-2" aria-label="Kahaniverse home">
-            <img src="/images/logo.png" alt="Kahaniverse logo" width={32} height={32} className="rounded" />
-            <span className="font-serif font-bold text-text-primary">Kahaniverse</span>
+      <div className="auth-shell">
+        <nav aria-label="Main navigation">
+          <Link href="/" className="nav-logo" aria-label="Kahaniverse home">
+            <img src="/images/logo.png" alt="Kahaniverse logo" className="nav-logo-img" width={42} height={42} />
+            <span className="nav-logo-text">Kahaniverse</span>
+            <p className="book-tagline">The Universe of Stories</p>
           </Link>
-        </header>
-        <main className="flex-1 flex items-center justify-center p-6">
-          {children}
-        </main>
-        <footer className="text-center py-4 text-xs text-text-muted border-t border-border">
-          © 2025 Kahaniverse
+        </nav>
+
+        <main className="auth-main">{children}</main>
+
+        <footer>
+          <ul className="footer-links">
+            <li><Link href="/terms">Terms</Link></li>
+            <li><Link href="/privacy">Privacy</Link></li>
+            <li><a href="mailto:help@kahaniverse.com">Help</a></li>
+          </ul>
+          <p className="footer-copy">© 2025 Kahaniverse. All rights reserved.</p>
         </footer>
       </div>
+
       <ToastContainer />
     </QueryProvider>
   );

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import type { Session } from 'next-auth';
 import { auth } from '@/lib/auth/config';
 import { ToastContainer } from '@/components/ui/Toast';
+import { CreateLink } from '@/components/shell/CreateLink';
 
 interface Props {
   children: [React.ReactNode, React.ReactNode];
@@ -22,7 +23,7 @@ export async function MediumShell({ children, session: sessionProp }: Props) {
         </Link>
         <Link href="/"         className="text-text-muted hover:text-text-primary text-lg" aria-label="Browse">🏠</Link>
         <Link href="/discover" className="text-text-muted hover:text-text-primary text-lg" aria-label="Discover">🔍</Link>
-        <Link href="/universes/new" className="text-text-muted hover:text-text-primary text-lg" aria-label="Create">✏️</Link>
+        <CreateLink className="text-text-muted hover:text-text-primary text-lg" ariaLabel="Create">✏️</CreateLink>
         <Link href="/authors"  className="text-text-muted hover:text-text-primary text-lg" aria-label="Authors">👥</Link>
         <div className="mt-auto">
           {session
