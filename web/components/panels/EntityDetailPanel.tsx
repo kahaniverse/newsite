@@ -7,6 +7,7 @@ import { AuthorByline } from '@/components/ui/AuthorByline';
 import { ReactionsStrip } from '@/components/ui/ReactionsStrip';
 import { RoundCarousel } from '@/components/lists/RoundCarousel';
 import { StoryList } from '@/components/lists/StoryList';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { CardSkeleton, Skeleton } from '@/components/ui/Skeleton';
 import { usePanelStore } from '@/store';
@@ -49,31 +50,32 @@ function UniverseDetail({ initialUniverse }: { initialUniverse?: Universe }) {
   if (!universe) return null;
 
   return (
-    <div className="flex flex-col gap-5 overflow-y-auto h-full pb-24 px-1 panel-enter">
-      <section aria-label={`Universe: ${universe.name}`}>
-        <CoverImage src={universe.coverImage} alt={universe.name} aspect="16/9" priority />
-        <div className="mt-4 space-y-3">
+    <div className="flex flex-col gap-5 pb-24 px-1 panel-enter">
+      <section aria-label={`Universe: ${universe.name}`} className="paper-card overflow-hidden">
+        <CoverImage src={universe.coverImage} alt={universe.name} aspect="16/9" priority seed={universe.id} />
+        <div className="p-4 space-y-3">
           <div className="flex flex-wrap gap-1.5">
             {universe.genres.map(g => (
-              <span key={g} className="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full">
+              <span key={g} className="text-xs bg-accent-deep/10 text-accent-deep px-2 py-0.5 rounded-full">
                 {GENRE_LABELS[g]}
               </span>
             ))}
           </div>
-          <h2 className="font-serif text-2xl font-bold text-text-primary">{universe.name}</h2>
-          <p className="text-sm text-text-muted leading-relaxed">{universe.concept}</p>
-          <div className="flex flex-wrap gap-3 text-xs text-text-muted">
+          <h2 className="font-serif text-2xl font-bold text-paper-ink">{universe.name}</h2>
+          <p className="text-sm text-paper-muted leading-relaxed">{universe.concept}</p>
+          <div className="flex flex-wrap gap-3 text-xs text-paper-muted">
             {universe.era   && <span>📅 {universe.era}</span>}
             {universe.world && <span>🌍 {universe.world}</span>}
             <span>📖 {universe.storyCount} stories</span>
           </div>
-          <div className="flex items-center justify-between pt-2 border-t border-border">
-            <AuthorByline author={universe.creator} size="md" />
+          <div className="flex items-center justify-between pt-2 border-t border-paper-border">
+            <AuthorByline author={universe.creator} size="md" tone="ink" />
             <ReactionsStrip
               targetId={universe.id}
               targetType="universe"
               loveCount={universe.loveCount}
               followCount={universe.followCount}
+              viewCount={universe.viewCount}
               shareUrl={`${process.env.NEXT_PUBLIC_APP_URL}/universes/${universe.slug}`}
             />
           </div>
@@ -85,18 +87,18 @@ function UniverseDetail({ initialUniverse }: { initialUniverse?: Universe }) {
       </ErrorBoundary>
 
       <section aria-label="Stories in this universe">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-            Stories
-          </h3>
-          <Link
-            href={`/stories/new?universeId=${universe.id}`}
-            className="text-xs text-accent hover:underline font-medium"
-            aria-label="Write a new story in this universe"
-          >
-            + Write story
-          </Link>
-        </div>
+        <SectionHeader
+          title="Latest Stories"
+          action={
+            <Link
+              href={`/stories/new?universeId=${universe.id}`}
+              className="text-xs text-accent hover:underline font-medium"
+              aria-label="Write a new story in this universe"
+            >
+              + Write story
+            </Link>
+          }
+        />
         <ErrorBoundary>
           <StoryList
             universeId={universe.id}
@@ -128,15 +130,15 @@ function AuthorDetail({ authorId }: { authorId: string }) {
   );
 
   return (
-    <div className="flex flex-col gap-5 overflow-y-auto h-full pb-24 px-1 panel-enter">
-      <section aria-label={`Author: ${author.displayName}`} className="flex items-start gap-4">
+    <div className="flex flex-col gap-5 pb-24 px-1 panel-enter">
+      <section aria-label={`Author: ${author.displayName}`} className="paper-card p-4 flex items-start gap-4">
         <AvatarImage src={author.avatarImage} alt={author.displayName} size={72} />
         <div className="flex-1 min-w-0">
-          <h2 className="font-serif text-2xl font-bold text-text-primary">{author.displayName}</h2>
+          <h2 className="font-serif text-2xl font-bold text-paper-ink">{author.displayName}</h2>
           {author.bio && (
-            <p className="text-sm text-text-muted mt-1 leading-relaxed">{author.bio}</p>
+            <p className="text-sm text-paper-muted mt-1 leading-relaxed">{author.bio}</p>
           )}
-          <div className="flex gap-4 mt-2 text-xs text-text-muted">
+          <div className="flex gap-4 mt-2 text-xs text-paper-muted">
             <span>{author.followCount.toLocaleString()} followers</span>
             <span>{author.loveCount.toLocaleString()} loves</span>
           </div>
@@ -152,9 +154,7 @@ function AuthorDetail({ authorId }: { authorId: string }) {
       </section>
 
       <section aria-label={`Stories by ${author.displayName}`}>
-        <h3 className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-3">
-          Stories
-        </h3>
+        <SectionHeader title="Stories Authored" />
         <ErrorBoundary>
           <StoryList onSelect={s => selectStory(s.id)} />
         </ErrorBoundary>

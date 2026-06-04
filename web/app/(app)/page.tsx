@@ -23,7 +23,7 @@ export default async function HomePage() {
       <div className="hidden lg:block h-screen">
         <WideShell session={session}>
           {[
-            <BrowsePanel key="browse" initialUniverses={universes} />,
+            <BrowsePanel key="browse" initialUniverses={universes} heroBleed />,
             <EntityDetailPanel key="detail" />,
             <LeafPanel key="leaf" />,
           ]}
@@ -34,7 +34,7 @@ export default async function HomePage() {
       <div className="hidden md:block lg:hidden h-screen">
         <MediumShell session={session}>
           {[
-            <BrowsePanel key="browse" initialUniverses={universes} />,
+            <BrowsePanel key="browse" initialUniverses={universes} heroBleed />,
             <EntityDetailPanel key="detail" />,
           ]}
         </MediumShell>
@@ -43,7 +43,7 @@ export default async function HomePage() {
       {/* Narrow layout (<768px) */}
       <div className="block md:hidden">
         <NarrowShell session={session}>
-          <BrowsePanel initialUniverses={universes} />
+          <BrowsePanel initialUniverses={universes} heroBleed />
         </NarrowShell>
       </div>
     </>

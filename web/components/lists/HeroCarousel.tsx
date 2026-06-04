@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import type { Universe } from '@/lib/types';
 import { GENRE_LABELS } from '@/lib/types';
 import { usePanelStore } from '@/store';
+import { sampleCover } from '@/lib/sample-images';
 
 const FALLBACK: Universe[] = [
   {
@@ -26,7 +27,12 @@ export function HeroCarousel({ initialUniverses }: Props) {
   const router                    = useRouter();
   const { selectionKind, selectedUniverseSlug, selectUniverse } = usePanelStore();
 
-  // Fetch from API if no SSR data provided
+  // One extra "create" slide trails the real universes, like the old app's
+  // "Infinity / create your own universe" card at the end of the carousel.
+  const total    = universes.length + 1;
+  const isCreate = current === universes.length;
+  const u        = universes[current];
+
   useEffect(() => {
     if (initialUniverses?.length) return;
     fetch('/api/universes?featured=true&limit=5')
@@ -36,125 +42,102 @@ export function HeroCarousel({ initialUniverses }: Props) {
   }, []); // eslint-disable-line
 
   const goTo = useCallback((idx: number) => {
-    setCurrent((idx + universes.length) % universes.length);
-  }, [universes.length]);
+    setCurrent((idx + total) % total);
+  }, [total]);
 
-  // Auto-advance
   useEffect(() => {
     if (paused) return;
     intervalRef.current = setInterval(() => goTo(current + 1), 5000);
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [current, paused, goTo]);
 
-  const u = universes[current];
-
-  // On first mount (and whenever the data set first loads), seed the
-  // detail panel with the currently-visible universe so the middle column
-  // has something to show without forcing the user to click.
+  // Seed the detail panel with the visible universe (skip the create slide).
   useEffect(() => {
     if (!u) return;
     if (selectionKind === null) selectUniverse(u.slug, u.id);
   }, [u?.slug, selectionKind, selectUniverse]); // eslint-disable-line
 
-  // User-initiated slide change → update the detail panel.
   const pick = useCallback((idx: number) => {
-    goTo(idx);
-    const target = universes[(idx + universes.length) % universes.length];
+    const n = (idx + total) % total;
+    setCurrent(n);
+    const target = universes[n];
     if (target) selectUniverse(target.slug, target.id);
-  }, [goTo, universes, selectUniverse]);
+  }, [total, universes, selectUniverse]);
 
-  // Clicking the book: select in the detail-panel store on wide/medium
-  // (where the middle column actually shows it), or route to the dedicated
-  // universe page on narrow layouts where there is no detail panel.
-  const openUniverse = useCallback(() => {
+  const open = useCallback(() => {
+    if (isCreate) { router.push('/universes/new'); return; }
     if (!u) return;
     selectUniverse(u.slug, u.id);
     if (typeof window !== 'undefined' && !window.matchMedia('(min-width: 768px)').matches) {
       router.push(`/universes/${u.slug}`);
     }
-  }, [u, selectUniverse, router]);
+  }, [isCreate, u, selectUniverse, router]);
 
-  const isActive = selectionKind === 'universe' && selectedUniverseSlug === u?.slug;
+  const isActive = !isCreate && selectionKind === 'universe' && selectedUniverseSlug === u?.slug;
+
+  // Touch-swipe between slides.
+  const swipe = useRef<{ x: number; moved: boolean }>({ x: 0, moved: false });
+  const onTouchStart = (e: React.TouchEvent) => { swipe.current = { x: e.touches[0].clientX, moved: false }; };
+  const onTouchMove  = (e: React.TouchEvent) => { if (Math.abs(e.touches[0].clientX - swipe.current.x) > 10) swipe.current.moved = true; };
+  const onTouchEnd   = (e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - swipe.current.x;
+    if (Math.abs(dx) > 40) pick(current + (dx < 0 ? 1 : -1));
+  };
 
   return (
-    <div
-      className={`book-wrapper cursor-pointer${isActive ? ' is-selected' : ''}`}
-      role="link"
-      aria-label={`Open ${u?.name ?? 'universe'}`}
-      aria-live="polite"
-      tabIndex={0}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onClick={openUniverse}
-      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && openUniverse()}
-    >
-      {/* Skeuomorphic book — DOM structure matches index.html exactly so CSS applies */}
-      <div id="skwrapper">
-        <div id="skcontainer">
-          <section className="open-book" id="openBook">
-            <header>
-              <span className="page-genre-tag" id="genreTag">
+    <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} aria-live="polite">
+      <div
+        role="link"
+        aria-label={isCreate ? 'Create a new universe' : `Open ${u?.name ?? 'universe'}`}
+        tabIndex={0}
+        onClick={() => { if (!swipe.current.moved) open(); }}
+        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && open()}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        className={`relative w-full overflow-hidden rounded-card cursor-pointer aspect-[3/4] bg-bg-elevated transition-shadow ${
+          isActive ? 'ring-2 ring-brand shadow-[0_4px_18px_rgba(0,0,0,0.55)]' : 'hover:shadow-[0_4px_18px_rgba(0,0,0,0.55)]'
+        }`}
+      >
+        {isCreate ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6 border-2 border-dashed border-brand/50 rounded-card">
+            <span className="text-5xl" aria-hidden>✨</span>
+            <h2 className="font-serif text-2xl font-bold text-text-primary">Infinity</h2>
+            <p className="text-sm text-text-muted">Press here to create your own universe based on a unique concept.</p>
+            <span className="btn-pill btn-pill-primary !h-10 !px-5 !text-sm mt-1">+ New Universe</span>
+          </div>
+        ) : (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={u.coverImage || sampleCover(u.id)} alt={u.name} className="absolute inset-0 w-full h-full object-cover" loading="eager" />
+            <div className="absolute inset-0 hero-scrim" />
+            {u.genres.length > 0 && (
+              <span className="absolute top-3 left-3 text-[11px] font-semibold uppercase tracking-wider text-white bg-brand/90 px-2.5 py-1 rounded-full">
                 {u.genres.map(g => GENRE_LABELS[g]).join(' · ')}
               </span>
-              <h1 id="bookAuthor">Author: {u.creator.displayName}</h1>
-            </header>
-            <article>
-              <div className="frame">
-                <img
-                  id="storyImage"
-                  className="illustration"
-                  src={u.coverImage}
-                  alt={u.name}
-                  width={600}
-                  height={300}
-                  loading="eager"
-                />
-              </div>
-              <h2 className="chapter-title" id="chapterTitle">{u.name}</h2>
-              <p id="chapterText">{u.concept.slice(0, 220)}</p>
-              {u.concept.length > 220 && (
-                <p id="chapterTextRight" style={{ marginTop: '0.75em' }}>
-                  {u.concept.slice(220, 420)}
-                </p>
-              )}
-            </article>
-          </section>
-        </div>
+            )}
+            <div className="absolute inset-x-0 bottom-0 p-4 space-y-1.5">
+              <h2 className="hero-title font-serif text-2xl font-bold text-white leading-tight line-clamp-2">{u.name}</h2>
+              <p className="text-xs text-white/80">by {u.creator.displayName}</p>
+              <p className="text-sm text-white/85 leading-snug line-clamp-3">{u.concept}</p>
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Controls */}
-      <div className="carousel-controls">
-        <button
-          className="carousel-btn"
-          id="prevBtn"
-          onClick={(e) => { e.stopPropagation(); pick(current - 1); }}
-          aria-label="Previous story"
-        >
-          &#8592;
-        </button>
-
-        <div className="carousel-dots" role="tablist" aria-label="Story slides">
-          {universes.map((_, i) => (
-            <button
-              key={i}
-              className={`carousel-dot ${i === current ? 'active' : ''}`}
-              data-index={i}
-              role="tab"
-              aria-label={`Story ${i + 1}`}
-              aria-selected={i === current}
-              onClick={(e) => { e.stopPropagation(); pick(i); }}
-            />
+      {/* Pagination — mauve active / red inactive */}
+      <div className="flex items-center justify-center gap-4 mt-3">
+        <button type="button" onClick={() => pick(current - 1)} aria-label="Previous"
+          className="text-text-muted hover:text-accent text-lg leading-none w-7 h-7 flex items-center justify-center">&#8592;</button>
+        <div className="flex items-center gap-2" role="tablist" aria-label="Universe slides">
+          {Array.from({ length: total }).map((_, i) => (
+            <button key={i} type="button" role="tab" aria-label={i === universes.length ? 'Create' : `Universe ${i + 1}`}
+              aria-selected={i === current} onClick={() => pick(i)}
+              className={`h-2 rounded-full transition-all ${i === current ? 'w-5 bg-accent' : 'w-2 bg-brand/40 hover:bg-brand/70'}`} />
           ))}
         </div>
-
-        <button
-          className="carousel-btn"
-          id="nextBtn"
-          onClick={(e) => { e.stopPropagation(); pick(current + 1); }}
-          aria-label="Next story"
-        >
-          &#8594;
-        </button>
+        <button type="button" onClick={() => pick(current + 1)} aria-label="Next"
+          className="text-text-muted hover:text-accent text-lg leading-none w-7 h-7 flex items-center justify-center">&#8594;</button>
       </div>
     </div>
   );

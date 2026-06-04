@@ -12,8 +12,8 @@ export default async function EditProfilePage() {
   if (!author) redirect('/login');
 
   return (
-    <NarrowShell>
-      <div className="max-w-xl mx-auto py-6 px-2">
+    <NarrowShell title="Edit Profile">
+      <div className="max-w-md mx-auto py-6 px-2">
         <ProfileForm author={author} />
       </div>
     </NarrowShell>

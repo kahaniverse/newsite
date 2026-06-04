@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { HeroCarousel } from '@/components/lists/HeroCarousel';
 import { AuthorCarousel } from '@/components/lists/AuthorCarousel';
 import { StoryList } from '@/components/lists/StoryList';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { usePanelStore } from '@/store';
 import type { Universe, Story } from '@/lib/types';
@@ -10,9 +11,12 @@ import type { Universe, Story } from '@/lib/types';
 interface Props {
   initialUniverses?: Universe[];
   searchQuery?: string;
+  /** Pull the hero up behind the translucent nav (home only). Responsive to
+   *  each shell's top offset: narrow header ≈72px, wide nav ≈80px, medium none. */
+  heroBleed?: boolean;
 }
 
-export function BrowsePanel({ initialUniverses, searchQuery }: Props) {
+export function BrowsePanel({ initialUniverses, searchQuery, heroBleed }: Props) {
   const { selectUniverse, selectStory } = usePanelStore();
   const router = useRouter();
 
@@ -27,9 +31,12 @@ export function BrowsePanel({ initialUniverses, searchQuery }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-6 overflow-y-auto h-full pb-24 px-1">
-      {/* Universe Carousel */}
-      <section aria-label="Universe carousel">
+    <div className="flex flex-col gap-6 pb-24 px-1">
+      {/* Universe Carousel — bleeds up behind the translucent nav on home */}
+      <section
+        aria-label="Universe carousel"
+        className={heroBleed ? '-mt-[72px] md:mt-0 lg:-mt-20' : undefined}
+      >
         <ErrorBoundary>
           <HeroCarousel initialUniverses={initialUniverses} />
         </ErrorBoundary>
@@ -37,9 +44,7 @@ export function BrowsePanel({ initialUniverses, searchQuery }: Props) {
 
       {/* Author carousel */}
       <section aria-label="Featured authors">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-3">
-          Authors
-        </h2>
+        <SectionHeader title="Authors" />
         <ErrorBoundary>
           <AuthorCarousel />
         </ErrorBoundary>
@@ -47,9 +52,7 @@ export function BrowsePanel({ initialUniverses, searchQuery }: Props) {
 
       {/* Story feed */}
       <section aria-label="Story feed">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-3">
-          Stories
-        </h2>
+        <SectionHeader title="Latest Stories" />
         <ErrorBoundary>
           <StoryList q={searchQuery} onSelect={handleStorySelect} />
         </ErrorBoundary>

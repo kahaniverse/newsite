@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx next *)",
+      "Bash(cd /c/workspace/kahaniverse/web && grep -rn \"export async function\\\\|export function\" lib/db/queries/stories.ts lib/db/queries/pages.ts lib/db/queries/universes.ts lib/db/queries/authors.ts)",
+      "Read(//c/c/workspace/kahaniverse/web/lib/db/queries/**)",
+      "Bash(cd /c/workspace/kahaniverse/web && grep -rn \"parent_id\\\\|CREATE TABLE pages\\\\|page_count\\\\|REFERENCES pages\" lib/db/migrations/ 2>/dev/null | head -40)",
+      "Read(//c/c/workspace/kahaniverse/web/lib/db/**)",
+      "Bash(cd /c/workspace/kahaniverse/web && grep -rn \"nav-translucent\\\\|<nav\\\\|<header\" components/shell app/\\\\\\(app\\\\\\) 2>/dev/null | grep -iv \"navigation\\\\b\" | head -40)",
+      "Read(//c/c/workspace/kahaniverse/web/components/**)",
+      "Bash(cd /c/workspace/kahaniverse/web && grep -rn \"overflow-y-auto h-full\\\\|overflow-y-auto\" components/panels components/screens app/\\\\\\(app\\\\\\) 2>/dev/null | head; echo \"---shells \\(should be the only scrollers\\)---\"; grep -rn \"overflow-y-auto\" components/shell 2>/dev/null)",
+      "Read(//c/c/workspace/kahaniverse/web/app/**)"
+    ]
+  }
+}

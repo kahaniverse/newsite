@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { StoryCard } from '@/components/cards/StoryCard';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import { useInfiniteStories } from '@/hooks/useInfiniteStories';
@@ -10,11 +11,13 @@ interface Props {
   universeId?: string;
   status?:     string;
   q?:          string;
+  /** If omitted, clicking a story navigates to its detail route. */
   onSelect?:   (story: Story) => void;
   initialData?: Story[];
 }
 
 export function StoryList({ universeId, status = 'published', q, onSelect, initialData }: Props) {
+  const router = useRouter();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteStories({ universeId, status, q });
 
@@ -53,11 +56,12 @@ export function StoryList({ universeId, status = 'published', q, onSelect, initi
 
   return (
     <div className="space-y-4">
-      {stories.map(story => (
+      {stories.map((story, i) => (
         <StoryCard
           key={story.id}
           story={story}
-          onClick={() => onSelect?.(story)}
+          index={i}
+          onClick={() => (onSelect ? onSelect(story) : router.push(`/stories/${story.id}`))}
           selected={selectedStoryId === story.id}
         />
       ))}

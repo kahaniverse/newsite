@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { PageCard } from '@/components/cards/PageCard';
 import { PageList } from '@/components/lists/PageList';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { SlimList } from '@/components/lists/SlimList';
@@ -79,7 +80,7 @@ export function LeafPanel() {
   const siblings = page.children ?? [];
 
   return (
-    <div className="flex flex-col gap-5 overflow-y-auto h-full pb-24 px-1 panel-enter">
+    <div className="flex flex-col gap-5 pb-24 px-1 panel-enter">
       {/* Current page */}
       <ErrorBoundary>
         <PageCard page={page} />
@@ -98,9 +99,12 @@ export function LeafPanel() {
 
       {/* Sibling / alternate pages */}
       {!page.disallowAlternate && siblings.length > 0 && (
-        <ErrorBoundary>
-          <PageList pages={siblings} onSelect={p => selectPage(p.id)} />
-        </ErrorBoundary>
+        <section>
+          <SectionHeader title="Alternate Next Pages" />
+          <ErrorBoundary>
+            <PageList pages={siblings} onSelect={p => selectPage(p.id)} />
+          </ErrorBoundary>
+        </section>
       )}
     </div>
   );
@@ -115,9 +119,7 @@ function SuggestedList() {
 
   return (
     <div className="flex flex-col gap-4 p-2">
-      <h3 className="text-xs font-semibold uppercase tracking-widest text-text-muted">
-        Authors to follow
-      </h3>
+      <SectionHeader title="Authors to follow" />
       <ErrorBoundary>
         <SlimList authors={data?.data ?? []} />
       </ErrorBoundary>

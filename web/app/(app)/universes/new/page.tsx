@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'Create a Universe — Kahaniverse' }
 
 export default function NewUniversePage() {
   return (
-    <NarrowShell>
+    <NarrowShell title="Add Universe">
       <div className="max-w-xl mx-auto py-6 px-2">
         <UniverseForm />
       </div>

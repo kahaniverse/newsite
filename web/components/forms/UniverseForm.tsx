@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { GENRE_LABELS, type Genre } from '@/lib/types';
+import { AttestDialog } from './AttestDialog';
+import { ImageUpload } from './ImageUpload';
 
 const ALL_GENRES = Object.keys(GENRE_LABELS) as Genre[];
 
@@ -21,13 +23,18 @@ type FormData = z.infer<typeof schema>;
 export function UniverseForm() {
   const router = useRouter();
   const [serverErr, setServerErr] = useState('');
+  const [pending, setPending] = useState<FormData | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const { register, handleSubmit, control, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { genres: [] },
   });
 
-  async function onSubmit(data: FormData) {
+  const cover = watch('coverImage');
+
+  async function create(data: FormData) {
+    setBusy(true);
     setServerErr('');
     const res = await fetch('/api/universes', {
       method:  'POST',
@@ -37,6 +44,7 @@ export function UniverseForm() {
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
       setServerErr(json.error ?? 'Failed to create universe.');
+      setBusy(false); setPending(null);
       return;
     }
     const universe = await res.json();
@@ -44,94 +52,127 @@ export function UniverseForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 max-w-xl" noValidate>
-      <h1 className="font-serif text-2xl font-bold text-text-primary">Create a Universe</h1>
-
-      <Field label="Name *" error={errors.name?.message}>
-        <input {...register('name')} placeholder="e.g. The Ember Courts" className={inputCls} maxLength={64} />
-      </Field>
-
-      <Field label="Concept / Pitch *" error={errors.concept?.message}>
-        <textarea {...register('concept')} placeholder="What is this universe about?" className={`${inputCls} h-32 resize-none`} maxLength={2000} />
-      </Field>
-
-      <Field label="Cover Image URL *" error={errors.coverImage?.message}>
-        <input {...register('coverImage')} placeholder="https://…" className={inputCls} type="url" />
-      </Field>
-
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="Era" error={errors.era?.message}>
-          <input {...register('era')} placeholder="e.g. Far Future" className={inputCls} maxLength={64} />
-        </Field>
-        <Field label="World / Setting" error={errors.world?.message}>
-          <input {...register('world')} placeholder="e.g. New Terra" className={inputCls} maxLength={64} />
-        </Field>
-      </div>
-
-      <Field label="Genres *" error={errors.genres?.message}>
-        <Controller
-          name="genres"
-          control={control}
-          render={({ field }) => (
-            <div className="flex flex-wrap gap-2">
-              {ALL_GENRES.map(g => {
-                const selected = (field.value as string[]).includes(g);
-                return (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => {
-                      const next = selected
-                        ? (field.value as string[]).filter(v => v !== g)
-                        : [...(field.value as string[]), g];
-                      field.onChange(next);
-                    }}
-                    className={`px-3 py-1 rounded-full text-xs border transition-colors ${
-                      selected
-                        ? 'bg-accent text-white border-accent'
-                        : 'border-border text-text-muted hover:border-accent hover:text-accent'
-                    }`}
-                    aria-pressed={selected}
-                  >
-                    {GENRE_LABELS[g]}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+    <>
+      <form onSubmit={handleSubmit(d => setPending(d))} className="paper-card overflow-hidden" noValidate>
+        <CoverPreview
+          src={cover}
+          hint="Tap “Add image” to upload a cover"
+          onUpload={url => setValue('coverImage', url, { shouldValidate: true })}
         />
-      </Field>
 
-      {serverErr && <p className="text-sm text-error">{serverErr}</p>}
+        <div className="p-4 space-y-4">
+          <input
+            {...register('name')}
+            placeholder="Short Name"
+            maxLength={64}
+            className="w-full bg-transparent font-serif text-2xl font-bold text-paper-ink placeholder:text-paper-muted/60 focus:outline-none"
+          />
+          {errors.name && <Err>{errors.name.message}</Err>}
 
-      <div className="flex gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="bg-accent hover:bg-accent-light text-white font-semibold py-2.5 px-6 rounded-btn text-sm transition-colors disabled:opacity-60"
-        >
-          {isSubmitting ? 'Creating…' : 'Create Universe'}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="border border-border text-text-muted hover:text-text-primary py-2.5 px-6 rounded-btn text-sm transition-colors"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
+          <textarea
+            {...register('concept')}
+            placeholder="Mention the concept of this universe in few words"
+            maxLength={2000}
+            className={`${inputCls} h-28 resize-none italic`}
+          />
+          {errors.concept && <Err>{errors.concept.message}</Err>}
+
+          <div className="grid grid-cols-2 gap-3">
+            <input {...register('era')}   placeholder="Era (any time)"     className={inputCls} maxLength={64} />
+            <input {...register('world')} placeholder="World (any place)"  className={inputCls} maxLength={64} />
+          </div>
+
+          <input type="hidden" {...register('coverImage')} />
+          {errors.coverImage && <Err>{errors.coverImage.message}</Err>}
+
+          <Controller
+            name="genres"
+            control={control}
+            render={({ field }) => (
+              <div className="flex flex-wrap gap-2">
+                {ALL_GENRES.map(g => <GenrePill key={g} g={g} field={field} />)}
+              </div>
+            )}
+          />
+          {errors.genres && <Err>{errors.genres.message}</Err>}
+
+          {serverErr && <p className="text-sm text-error">{serverErr}</p>}
+
+          <Actions onCancel={() => router.back()} label="Create" />
+        </div>
+      </form>
+
+      <AttestDialog
+        open={!!pending}
+        busy={busy}
+        onClose={() => !busy && setPending(null)}
+        onAnswer={() => pending && create(pending)}
+      />
+    </>
   );
 }
 
-const inputCls = 'w-full bg-bg-elevated border border-border rounded-input px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent';
+// ── Shared editable-card pieces (also imported by Story/Page forms) ───────
+export const inputCls =
+  'w-full bg-white border border-black/10 rounded-md px-3 py-2 text-sm text-paper-ink placeholder:text-paper-muted focus:outline-none focus:border-accent-deep';
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+export function Err({ children }: { children?: React.ReactNode }) {
+  return <span className="text-xs text-error">{children}</span>;
+}
+
+export function CoverPreview({ src, hint, onUpload }: { src?: string; hint: string; onUpload?: (url: string) => void }) {
+  const valid = src && /^https?:\/\//.test(src);
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs font-medium text-text-muted">{label}</label>
-      {children}
-      {error && <span className="text-xs text-error">{error}</span>}
+    <div className="relative w-full aspect-[16/9] bg-bg-elevated">
+      {valid ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="Cover preview" className="absolute inset-0 w-full h-full object-cover" />
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-text-muted">
+          <span className="text-3xl" aria-hidden>🖼️</span>
+          <span className="text-xs">{hint}</span>
+        </div>
+      )}
+      {onUpload && (
+        <div className="absolute bottom-2 right-2">
+          <ImageUpload onUploaded={onUpload} label={valid ? 'Change image' : 'Add image'} />
+        </div>
+      )}
     </div>
+  );
+}
+
+export function Actions({ onCancel, label, busy }: { onCancel: () => void; label: string; busy?: boolean }) {
+  return (
+    <div className="flex gap-2 pt-1">
+      <button
+        type="button"
+        onClick={onCancel}
+        className="flex-1 inline-flex items-center justify-center h-11 px-4 rounded-full border border-paper-border text-paper-ink font-medium text-sm hover:border-accent-deep hover:text-accent-deep transition-colors"
+      >
+        Revert
+      </button>
+      <button type="submit" disabled={busy} className="flex-1 btn-pill btn-pill-primary !text-sm disabled:opacity-60">
+        {label}
+      </button>
+    </div>
+  );
+}
+
+export function GenrePill({ g, field }: { g: Genre; field: { value: string[]; onChange: (v: string[]) => void } }) {
+  const selected = field.value.includes(g);
+  return (
+    <button
+      type="button"
+      onClick={() => field.onChange(selected ? field.value.filter(v => v !== g) : [...field.value, g])}
+      aria-pressed={selected}
+      className={`px-3 py-1 rounded-full text-xs border transition-colors ${
+        selected
+          ? 'bg-accent-deep text-white border-accent-deep'
+          : 'border-black/15 text-paper-muted hover:border-accent-deep hover:text-accent-deep'
+      }`}
+    >
+      {GENRE_LABELS[g]}
+    </button>
   );
 }

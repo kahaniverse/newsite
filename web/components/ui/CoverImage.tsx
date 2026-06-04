@@ -1,11 +1,14 @@
 import Image from 'next/image';
+import { sampleCover } from '@/lib/sample-images';
 
 interface Props {
-  src:       string;
+  src?:      string;
   alt:       string;
   aspect?:   '16/9' | '4/3' | '1/1';
   priority?: boolean;
   className?: string;
+  /** Stable seed for the sample fallback when `src` is missing. */
+  seed?:     string;
 }
 
 const BLOB_BASE = process.env.NEXT_PUBLIC_BLOB_BASE_URL ?? '';
@@ -20,15 +23,18 @@ function isKnownDomain(src: string) {
   );
 }
 
-export function CoverImage({ src, alt, aspect = '16/9', priority = false, className = '' }: Props) {
+export function CoverImage({ src, alt, aspect = '16/9', priority = false, className = '', seed }: Props) {
   const [w, h] = aspect.split('/').map(Number);
   const paddingPct = ((h / w) * 100).toFixed(2);
 
+  // Fall back to a deterministic sample cover so cards always show art.
+  const resolved = src || sampleCover(seed || alt, w * 80, h * 80);
+
   return (
     <div className={`relative overflow-hidden rounded-card bg-bg-elevated ${className}`} style={{ paddingBottom: `${paddingPct}%` }}>
-      {isKnownDomain(src) ? (
+      {isKnownDomain(resolved) ? (
         <Image
-          src={src}
+          src={resolved}
           alt={alt}
           fill
           priority={priority}
@@ -36,8 +42,9 @@ export function CoverImage({ src, alt, aspect = '16/9', priority = false, classN
           sizes="(max-width:768px) 100vw, (max-width:1024px) 50vw, 33vw"
         />
       ) : (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={src}
+          src={resolved}
           alt={alt}
           loading={priority ? 'eager' : 'lazy'}
           className="absolute inset-0 w-full h-full object-cover"

@@ -1,4 +1,5 @@
 import type { Character } from '@/lib/types';
+import { sampleAvatar } from '@/lib/sample-images';
 
 interface Props { character: Character; }
 
@@ -6,8 +7,9 @@ export function RoundCard({ character }: Props) {
   return (
     <div className="flex flex-col items-center gap-2 p-2 text-center shrink-0 w-20">
       <div className="w-14 h-14 rounded-full overflow-hidden bg-bg-elevated border-2 border-border">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={character.image}
+          src={character.image || sampleAvatar(character.id || character.name, 112)}
           alt={character.name}
           width={56}
           height={56}

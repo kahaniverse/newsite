@@ -23,7 +23,7 @@ export function AuthorCarousel({ initialAuthors }: Props) {
     return (
       <div className="flex gap-3 overflow-x-auto pb-2 snap-x-mandatory">
         {[...Array(6)].map((_, i) => (
-          <Skeleton key={i} className="w-20 h-28 shrink-0 snap-start" />
+          <Skeleton key={i} className="w-[82px] h-[88px] rounded-br-[6px] shrink-0 snap-start" />
         ))}
       </div>
     );

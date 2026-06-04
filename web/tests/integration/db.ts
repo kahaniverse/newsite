@@ -57,3 +57,44 @@ export async function makeUniverse(creatorId: string, overrides: Partial<{
   `;
   return { id: rows[0].id as string, slug: rows[0].slug as string };
 }
+
+// Insert a story plus its creator contributor row (so isStoryContributor passes).
+export async function makeStory(universeId: string, creatorId: string, overrides: Partial<{
+  title: string; status: string;
+}> = {}): Promise<{ id: string; title: string }> {
+  const title  = overrides.title  ?? `Story ${Math.random().toString(36).slice(2, 8)}`;
+  const status = overrides.status ?? 'published';
+  const rows = await sql`
+    WITH ins AS (
+      INSERT INTO stories (title, synopsis, universe_id, genre_tags, status)
+      VALUES (${title}, 'syn', ${universeId}, ARRAY[]::genre[], ${status}::story_status)
+      RETURNING id, title
+    ),
+    contrib AS (
+      INSERT INTO story_contributors (story_id, author_id, role, accepted_at)
+      SELECT id, ${creatorId}, 'creator', now() FROM ins
+      RETURNING story_id
+    ),
+    bump AS (
+      UPDATE universes SET story_count = story_count + 1
+      WHERE id = ${universeId}
+      RETURNING id
+    )
+    SELECT ins.id, ins.title FROM ins
+    WHERE EXISTS (SELECT 1 FROM contrib) AND EXISTS (SELECT 1 FROM bump)
+  `;
+  return { id: rows[0].id as string, title: rows[0].title as string };
+}
+
+export async function makePage(storyId: string, authorId: string, overrides: Partial<{
+  parentId: string | null; content: string;
+}> = {}): Promise<{ id: string }> {
+  const parentId = overrides.parentId ?? null;
+  const content  = overrides.content  ?? 'page content';
+  const rows = await sql`
+    INSERT INTO pages (story_id, parent_id, content, author_id)
+    VALUES (${storyId}, ${parentId}, ${content}, ${authorId})
+    RETURNING id
+  `;
+  return { id: rows[0].id as string };
+}

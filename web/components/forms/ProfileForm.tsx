@@ -5,6 +5,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import type { Author } from '@/lib/types';
+import { sampleAvatar } from '@/lib/sample-images';
+import { inputCls, Err, Actions } from './UniverseForm';
+import { ImageUpload } from './ImageUpload';
 
 const schema = z.object({
   displayName: z.string().min(2, 'Min 2 chars').max(64, 'Max 64 chars'),
@@ -18,8 +21,9 @@ interface Props { author: Author }
 export function ProfileForm({ author }: Props) {
   const router = useRouter();
   const [serverErr, setServerErr] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       displayName: author.displayName,
@@ -28,9 +32,11 @@ export function ProfileForm({ author }: Props) {
     },
   });
 
-  const bio = watch('bio', '');
+  const bio    = watch('bio', '');
+  const avatar = watch('avatarImage') || author.avatarImage || sampleAvatar(author.id, 240);
 
   async function onSubmit(data: FormData) {
+    setBusy(true);
     setServerErr('');
     const res = await fetch(`/api/authors/${author.id}`, {
       method:  'PATCH',
@@ -40,6 +46,7 @@ export function ProfileForm({ author }: Props) {
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
       setServerErr(json.error ?? 'Failed to update profile.');
+      setBusy(false);
       return;
     }
     router.push('/profile');
@@ -47,45 +54,41 @@ export function ProfileForm({ author }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 max-w-md" noValidate>
-      <h1 className="font-serif text-2xl font-bold text-text-primary">Edit Profile</h1>
+    <form onSubmit={handleSubmit(onSubmit)} className="paper-card p-5 space-y-4" noValidate>
+      <div className="flex flex-col items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={avatar} alt="" className="w-24 h-24 rounded-full object-cover ring-4 ring-paper shadow" />
+        <ImageUpload
+          variant="inline"
+          label="Upload / capture photo"
+          onUploaded={url => setValue('avatarImage', url, { shouldValidate: true })}
+        />
+      </div>
 
-      <Field label="Pen Name *" error={errors.displayName?.message}>
-        <input {...register('displayName')} className={inputCls} maxLength={64} />
-      </Field>
+      <input
+        {...register('displayName')}
+        placeholder="Name"
+        maxLength={64}
+        className="w-full bg-transparent text-center font-serif text-xl font-bold text-paper-ink placeholder:text-paper-muted/60 focus:outline-none"
+      />
+      {errors.displayName && <Err>{errors.displayName.message}</Err>}
 
-      <Field label={`Bio (${(bio ?? '').length}/500)`} error={errors.bio?.message}>
-        <textarea {...register('bio')} className={`${inputCls} h-28 resize-none`} maxLength={500} placeholder="Tell readers about yourself…" />
-      </Field>
+      <textarea
+        {...register('bio')}
+        placeholder="Tell readers about yourself…"
+        maxLength={500}
+        className={`${inputCls} h-24 resize-none italic`}
+      />
+      <div className="flex justify-end -mt-2">
+        <span className="text-xs text-paper-muted">{(bio ?? '').length}/500</span>
+      </div>
 
-      <Field label="Avatar URL" error={errors.avatarImage?.message}>
-        <input {...register('avatarImage')} className={inputCls} type="url" placeholder="https://… (optional)" />
-      </Field>
+      <input type="hidden" {...register('avatarImage')} />
+      {errors.avatarImage && <Err>{errors.avatarImage.message}</Err>}
 
       {serverErr && <p className="text-sm text-error">{serverErr}</p>}
 
-      <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={isSubmitting}
-          className="bg-accent hover:bg-accent-light text-white font-semibold py-2.5 px-6 rounded-btn text-sm transition-colors disabled:opacity-60">
-          {isSubmitting ? 'Saving…' : 'Save Changes'}
-        </button>
-        <button type="button" onClick={() => router.back()}
-          className="border border-border text-text-muted hover:text-text-primary py-2.5 px-6 rounded-btn text-sm transition-colors">
-          Cancel
-        </button>
-      </div>
+      <Actions onCancel={() => router.back()} label="Update" busy={busy} />
     </form>
-  );
-}
-
-const inputCls = 'w-full bg-bg-elevated border border-border rounded-input px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent';
-
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs font-medium text-text-muted">{label}</label>
-      {children}
-      {error && <span className="text-xs text-error">{error}</span>}
-    </div>
   );
 }

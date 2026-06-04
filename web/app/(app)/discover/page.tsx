@@ -3,7 +3,7 @@ import { DiscoverPanel } from './DiscoverPanel';
 
 export default function DiscoverPage() {
   return (
-    <NarrowShell>
+    <NarrowShell title="Discover">
       <DiscoverPanel />
     </NarrowShell>
   );

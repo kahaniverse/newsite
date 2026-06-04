@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GENRE_LABELS, type Genre } from '@/lib/types';
+import { AttestDialog } from './AttestDialog';
+import { inputCls, Err, CoverPreview, Actions, GenrePill } from './UniverseForm';
 
 const ALL_GENRES = Object.keys(GENRE_LABELS) as Genre[];
 
@@ -21,16 +23,19 @@ export function StoryForm() {
   const params      = useSearchParams();
   const universeId  = params.get('universeId') ?? '';
   const [serverErr, setServerErr] = useState('');
+  const [pending, setPending] = useState<FormData | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const { register, handleSubmit, control, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { genreTags: [] },
   });
 
-  const synopsis = watch('synopsis', '');
+  const cover = watch('coverImage');
 
-  async function onSubmit(data: FormData) {
-    if (!universeId) { setServerErr('Universe ID missing from URL.'); return; }
+  async function create(data: FormData) {
+    if (!universeId) { setServerErr('Universe ID missing from URL.'); setPending(null); return; }
+    setBusy(true);
     setServerErr('');
     const res = await fetch('/api/stories', {
       method:  'POST',
@@ -40,6 +45,7 @@ export function StoryForm() {
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
       setServerErr(json.error ?? 'Failed to create story.');
+      setBusy(false); setPending(null);
       return;
     }
     const story = await res.json();
@@ -47,73 +53,56 @@ export function StoryForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 max-w-xl" noValidate>
-      <h1 className="font-serif text-2xl font-bold text-text-primary">Write a Story</h1>
-
-      <Field label="Title *" error={errors.title?.message}>
-        <input {...register('title')} placeholder="Your story title" className={inputCls} maxLength={128} />
-      </Field>
-
-      <Field label={`Synopsis * (${synopsis.length}/500)`} error={errors.synopsis?.message}>
-        <textarea {...register('synopsis')} placeholder="What happens in this story?" className={`${inputCls} h-28 resize-none`} maxLength={500} />
-      </Field>
-
-      <Field label="Cover Image URL" error={errors.coverImage?.message}>
-        <input {...register('coverImage')} placeholder="https://… (optional)" className={inputCls} type="url" />
-      </Field>
-
-      <Field label="Genre Tags" error={errors.genreTags?.message}>
-        <Controller
-          name="genreTags"
-          control={control}
-          render={({ field }) => (
-            <div className="flex flex-wrap gap-2">
-              {ALL_GENRES.map(g => {
-                const selected = (field.value as string[]).includes(g);
-                return (
-                  <button key={g} type="button"
-                    onClick={() => {
-                      const next = selected
-                        ? (field.value as string[]).filter(v => v !== g)
-                        : [...(field.value as string[]), g];
-                      field.onChange(next);
-                    }}
-                    className={`px-3 py-1 rounded-full text-xs border transition-colors ${selected ? 'bg-accent text-white border-accent' : 'border-border text-text-muted hover:border-accent hover:text-accent'}`}
-                    aria-pressed={selected}
-                  >
-                    {GENRE_LABELS[g]}
-                  </button>
-                );
-              })}
-            </div>
-          )}
+    <>
+      <form onSubmit={handleSubmit(d => setPending(d))} className="paper-card overflow-hidden" noValidate>
+        <CoverPreview
+          src={cover}
+          hint="Tap “Add image” to upload a cover (optional)"
+          onUpload={url => setValue('coverImage', url, { shouldValidate: true })}
         />
-      </Field>
 
-      {serverErr && <p className="text-sm text-error">{serverErr}</p>}
+        <div className="p-4 space-y-4">
+          <input
+            {...register('title')}
+            placeholder="Short Name"
+            maxLength={128}
+            className="w-full bg-transparent font-serif text-2xl font-bold text-paper-ink placeholder:text-paper-muted/60 focus:outline-none"
+          />
+          {errors.title && <Err>{errors.title.message}</Err>}
 
-      <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={isSubmitting}
-          className="bg-accent hover:bg-accent-light text-white font-semibold py-2.5 px-6 rounded-btn text-sm transition-colors disabled:opacity-60">
-          {isSubmitting ? 'Creating…' : 'Create Story'}
-        </button>
-        <button type="button" onClick={() => router.back()}
-          className="border border-border text-text-muted hover:text-text-primary py-2.5 px-6 rounded-btn text-sm transition-colors">
-          Cancel
-        </button>
-      </div>
-    </form>
-  );
-}
+          <textarea
+            {...register('synopsis')}
+            placeholder="Mention the synopsis of this story in few words"
+            maxLength={500}
+            className={`${inputCls} h-28 resize-none italic`}
+          />
+          {errors.synopsis && <Err>{errors.synopsis.message}</Err>}
 
-const inputCls = 'w-full bg-bg-elevated border border-border rounded-input px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent';
+          <input type="hidden" {...register('coverImage')} />
+          {errors.coverImage && <Err>{errors.coverImage.message}</Err>}
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs font-medium text-text-muted">{label}</label>
-      {children}
-      {error && <span className="text-xs text-error">{error}</span>}
-    </div>
+          <Controller
+            name="genreTags"
+            control={control}
+            render={({ field }) => (
+              <div className="flex flex-wrap gap-2">
+                {ALL_GENRES.map(g => <GenrePill key={g} g={g} field={field} />)}
+              </div>
+            )}
+          />
+
+          {serverErr && <p className="text-sm text-error">{serverErr}</p>}
+
+          <Actions onCancel={() => router.back()} label="Create" />
+        </div>
+      </form>
+
+      <AttestDialog
+        open={!!pending}
+        busy={busy}
+        onClose={() => !busy && setPending(null)}
+        onAnswer={() => pending && create(pending)}
+      />
+    </>
   );
 }

@@ -47,5 +47,10 @@ export function useReactions(targetId: string, targetType: TargetType) {
     }
   }
 
-  return { counts, toggle, initCounts };
+  const active = {
+    love:   isActive(targetId, 'love'),
+    follow: isActive(targetId, 'follow'),
+  };
+
+  return { counts, active, toggle, initCounts };
 }

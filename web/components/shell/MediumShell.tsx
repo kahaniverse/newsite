@@ -17,18 +17,18 @@ export async function MediumShell({ children, session: sessionProp }: Props) {
   return (
     <div className="flex h-screen overflow-hidden bg-bg-primary">
       {/* Icon rail */}
-      <nav className="w-14 shrink-0 flex flex-col items-center py-4 gap-5 border-r border-border bg-bg-primary" aria-label="Main navigation">
+      <nav className="w-14 shrink-0 flex flex-col items-center py-4 gap-5 border-r border-border nav-translucent z-50" aria-label="Main navigation">
         <Link href="/" aria-label="Home">
           <Image src="/images/logo.png" alt="" width={28} height={28} className="rounded" />
         </Link>
-        <Link href="/"         className="text-text-muted hover:text-text-primary text-lg" aria-label="Browse">🏠</Link>
-        <Link href="/discover" className="text-text-muted hover:text-text-primary text-lg" aria-label="Discover">🔍</Link>
-        <CreateLink className="text-text-muted hover:text-text-primary text-lg" ariaLabel="Create">✏️</CreateLink>
-        <Link href="/authors"  className="text-text-muted hover:text-text-primary text-lg" aria-label="Authors">👥</Link>
+        <Link href="/"         className="text-text-muted hover:text-accent text-lg" aria-label="Browse">🏠</Link>
+        <Link href="/discover" className="text-text-muted hover:text-accent text-lg" aria-label="Discover">🔍</Link>
+        <CreateLink className="text-text-muted hover:text-accent text-lg" ariaLabel="Create">✏️</CreateLink>
+        <Link href="/authors"  className="text-text-muted hover:text-accent text-lg" aria-label="Authors">👥</Link>
         <div className="mt-auto">
           {session
-            ? <Link href="/profile" className="text-text-muted hover:text-text-primary text-lg" aria-label="Profile">🧑</Link>
-            : <Link href="/login"   className="text-text-muted hover:text-text-primary text-lg" aria-label="Sign in">🔐</Link>
+            ? <Link href="/profile" className="text-text-muted hover:text-accent text-lg" aria-label="Profile">🧑</Link>
+            : <Link href="/login"   className="text-text-muted hover:text-accent text-lg" aria-label="Sign in">🔐</Link>
           }
         </div>
       </nav>

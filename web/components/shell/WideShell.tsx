@@ -16,9 +16,9 @@ export async function WideShell({ children, session: sessionProp }: Props) {
   const [left, centre, right] = children;
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-bg-primary">
-      {/* Top nav */}
-      <nav className="flex items-center justify-between px-6 py-3 border-b border-border shrink-0 bg-bg-primary z-50" aria-label="Main navigation">
+    <div className="relative h-screen overflow-hidden bg-bg-primary">
+      {/* Top nav — floats over the columns so content scrolls behind it. */}
+      <nav className="absolute top-0 inset-x-0 flex items-center justify-between px-6 py-3 border-b border-border nav-translucent z-50" aria-label="Main navigation">
         <Link href="/" className="flex items-center gap-2" aria-label="Kahaniverse home">
           <Image src="/images/logo.png" alt="Kahaniverse logo" width={36} height={36} className="rounded" priority />
           <div>
@@ -28,10 +28,10 @@ export async function WideShell({ children, session: sessionProp }: Props) {
         </Link>
 
         <div className="flex items-center gap-6">
-          <Link href="/"          className="text-sm text-text-muted hover:text-text-primary transition-colors">Browse</Link>
-          <Link href="/discover"  className="text-sm text-text-muted hover:text-text-primary transition-colors">Discover</Link>
-          <Link href="/authors"   className="text-sm text-text-muted hover:text-text-primary transition-colors">Authors</Link>
-          <CreateLink className="text-sm text-text-muted hover:text-text-primary transition-colors">+ Create</CreateLink>
+          <Link href="/"          className="text-sm text-text-muted hover:text-accent transition-colors">Browse</Link>
+          <Link href="/discover"  className="text-sm text-text-muted hover:text-accent transition-colors">Discover</Link>
+          <Link href="/authors"   className="text-sm text-text-muted hover:text-accent transition-colors">Authors</Link>
+          <CreateLink className="btn-pill btn-pill-primary !h-9 !px-4 !text-sm">+ Create</CreateLink>
         </div>
 
         <div className="flex items-center gap-4">
@@ -40,15 +40,17 @@ export async function WideShell({ children, session: sessionProp }: Props) {
         </div>
       </nav>
 
-      {/* Three-column body — left and centre share width 1:1, right is fixed */}
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="flex-1 min-w-0 overflow-y-auto border-r border-border p-4">
+      {/* Three-column body — left and centre share width 1:1, right is fixed.
+          Columns fill the full height and pad their top so content starts
+          below the floating nav but scrolls up behind its translucency. */}
+      <div className="flex h-full overflow-hidden">
+        <aside className="flex-1 min-w-0 overflow-y-auto border-r border-border p-4 pt-20">
           {left}
         </aside>
-        <main className="flex-1 min-w-0 overflow-y-auto p-4 border-r border-border">
+        <main className="flex-1 min-w-0 overflow-y-auto p-4 pt-20 border-r border-border">
           {centre}
         </main>
-        <aside className="w-[320px] shrink-0 overflow-y-auto p-4">
+        <aside className="w-[320px] shrink-0 overflow-y-auto p-4 pt-20">
           {right}
         </aside>
       </div>

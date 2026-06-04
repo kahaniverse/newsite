@@ -12,8 +12,9 @@ test.describe('auth', () => {
 
   test('login with wrong password shows an error', async ({ page }) => {
     await page.goto('/login');
-    await page.getByLabel('Email').fill('nope@nope.test');
-    await page.getByLabel('Password').fill('wrongwrongwrong');
+    // Both auth forms live in the DOM; target the login form's unique input ids.
+    await page.locator('#loginEmail').fill('nope@nope.test');
+    await page.locator('#loginPassword').fill('wrongwrongwrong');
     await page.getByRole('button', { name: /enter the universe/i }).click();
     await expect(page.getByText(/incorrect email or password/i)).toBeVisible();
   });

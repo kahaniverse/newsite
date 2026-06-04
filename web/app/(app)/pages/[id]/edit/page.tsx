@@ -19,7 +19,7 @@ export default async function EditPageRoute({ params }: Props) {
   }
 
   return (
-    <NarrowShell session={session}>
+    <NarrowShell session={session} title="Edit Page">
       <div className="max-w-xl mx-auto py-6 px-2">
         <PageForm editPageId={page.id} />
       </div>

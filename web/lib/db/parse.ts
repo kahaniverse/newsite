@@ -1,3 +1,11 @@
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** True for a canonical UUID. Guards `WHERE id = ${id}::uuid` from throwing
+ *  a Postgres "invalid input syntax for type uuid" 500 on bad/seed ids. */
+export function isUuid(value: unknown): value is string {
+  return typeof value === 'string' && UUID_RE.test(value);
+}
+
 // The Neon HTTP driver doesn't always know how to map custom enum array
 // columns to JS arrays; it sometimes returns the Postgres text representation
 // like '{a,b,"c d"}'. Normalise to a real JS string[] regardless of which

@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'Write a Story — Kahaniverse' };
 
 export default function NewStoryPage() {
   return (
-    <NarrowShell>
+    <NarrowShell title="Add Story">
       <div className="max-w-xl mx-auto py-6 px-2">
         <StoryForm />
       </div>

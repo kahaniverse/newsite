@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { AttestDialog } from './AttestDialog';
+import { inputCls, Err, CoverPreview, Actions } from './UniverseForm';
 
 const schema = z.object({
   content:      z.string().min(1, 'Required').max(10000, 'Max 10,000 chars'),
@@ -11,28 +13,28 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-interface Props {
-  editPageId?: string;
-}
+interface Props { editPageId?: string }
 
 export function PageForm({ editPageId }: Props = {}) {
   const router      = useRouter();
   const params      = useSearchParams();
   const storyId     = params.get('storyId') ?? '';
   const parentId    = params.get('parentId') ?? '';
-  const intent      = params.get('intent');         // 'next' | 'alter' | null
+  const intent      = params.get('intent');
   const isEdit      = !!editPageId;
   const isAlternate = intent === 'alter' || (!intent && !!parentId && parentId !== storyId);
   const [serverErr, setServerErr] = useState('');
   const [loadingExisting, setLoadingExisting] = useState(isEdit);
+  const [pending, setPending] = useState<FormData | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const { register, handleSubmit, watch, reset, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, watch, reset, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
   const content = watch('content', '');
+  const illo    = watch('illustration');
 
-  // In edit mode, hydrate the form with the existing page's content.
   useEffect(() => {
     if (!editPageId) return;
     setLoadingExisting(true);
@@ -42,99 +44,81 @@ export function PageForm({ editPageId }: Props = {}) {
       .finally(() => setLoadingExisting(false));
   }, [editPageId, reset]);
 
-  async function onSubmit(data: FormData) {
+  async function save(data: FormData) {
+    setBusy(true);
     setServerErr('');
     const body = { content: data.content, illustration: data.illustration || undefined };
 
     if (isEdit) {
       const res = await fetch(`/api/pages/${editPageId}`, {
-        method:  'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(body),
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       });
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}));
-        setServerErr(json.error ?? 'Failed to save page.');
-        return;
-      }
+      if (!res.ok) { const j = await res.json().catch(() => ({})); setServerErr(j.error ?? 'Failed to save page.'); setBusy(false); return; }
       router.push(`/pages/${editPageId}`);
       return;
     }
 
-    if (!storyId || !parentId) { setServerErr('Story or parent ID missing from URL.'); return; }
+    if (!storyId || !parentId) { setServerErr('Story or parent ID missing from URL.'); setBusy(false); setPending(null); return; }
     const res = await fetch('/api/pages', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ storyId, parentId, ...body }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ storyId, parentId, ...body }),
     });
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
-      setServerErr(json.error ?? 'Failed to add page.');
-      return;
-    }
+    if (!res.ok) { const j = await res.json().catch(() => ({})); setServerErr(j.error ?? 'Failed to add page.'); setBusy(false); setPending(null); return; }
     const page = await res.json();
     router.push(`/pages/${page.id}`);
   }
 
-  const heading = isEdit
-    ? 'Edit Page'
-    : isAlternate
-      ? 'Add an Alternate Path'
-      : 'Continue the Story';
+  const heading = isEdit ? 'Edit Page' : isAlternate ? 'Add an Alternate Path' : 'Continue the Story';
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 max-w-xl" noValidate>
-      <div>
-        <h1 className="font-serif text-2xl font-bold text-text-primary">{heading}</h1>
-        {isAlternate && !isEdit && (
-          <p className="text-sm text-text-muted mt-1">
-            You are adding an alternate version of this page. Readers will be able to choose between paths.
-          </p>
-        )}
-      </div>
-
-      {loadingExisting && (
-        <p className="text-xs text-text-muted">Loading current content…</p>
-      )}
-
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-text-muted" htmlFor="pageContent">
-          Page Content * <span className="text-text-muted font-normal">({content.length}/10,000)</span>
-        </label>
-        <textarea
-          id="pageContent"
-          {...register('content')}
-          placeholder="Write your page here…"
-          className="w-full bg-bg-elevated border border-border rounded-input px-3 py-3 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent h-64 resize-none font-serif leading-relaxed"
-          maxLength={10000}
+    <>
+      <form
+        onSubmit={handleSubmit(d => (isEdit ? save(d) : setPending(d)))}
+        className="paper-card overflow-hidden"
+        noValidate
+      >
+        <CoverPreview
+          src={illo}
+          hint="Tap “Add image” to add an illustration (optional)"
+          onUpload={url => setValue('illustration', url, { shouldValidate: true })}
         />
-        {errors.content && <span className="text-xs text-error">{errors.content.message}</span>}
-      </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="text-xs font-medium text-text-muted" htmlFor="pageIllustration">Illustration URL (optional)</label>
-        <input
-          id="pageIllustration"
-          {...register('illustration')}
-          placeholder="https://… image URL"
-          className="w-full bg-bg-elevated border border-border rounded-input px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent"
-          type="url"
-        />
-        {errors.illustration && <span className="text-xs text-error">{errors.illustration.message}</span>}
-      </div>
+        <div className="p-4 space-y-4">
+          <div>
+            <h1 className="font-serif text-xl font-bold text-paper-ink">{heading}</h1>
+            {isAlternate && !isEdit && (
+              <p className="text-xs text-paper-muted mt-1">
+                You are adding an alternate version of this page. Readers will be able to choose between paths.
+              </p>
+            )}
+            {loadingExisting && <p className="text-xs text-paper-muted mt-1">Loading current content…</p>}
+          </div>
 
-      {serverErr && <p className="text-sm text-error">{serverErr}</p>}
+          <textarea
+            {...register('content')}
+            placeholder="Add content for the page…"
+            maxLength={10000}
+            className={`${inputCls} h-64 resize-none font-serif leading-relaxed`}
+          />
+          <div className="flex justify-between">
+            {errors.content ? <Err>{errors.content.message}</Err> : <span />}
+            <span className="text-xs text-paper-muted">{content.length}/10,000</span>
+          </div>
 
-      <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={isSubmitting || loadingExisting}
-          className="bg-accent hover:bg-accent-light text-white font-semibold py-2.5 px-6 rounded-btn text-sm transition-colors disabled:opacity-60">
-          {isSubmitting ? (isEdit ? 'Saving…' : 'Publishing…') : (isEdit ? 'Save Changes' : 'Publish Page')}
-        </button>
-        <button type="button" onClick={() => router.back()}
-          className="border border-border text-text-muted hover:text-text-primary py-2.5 px-6 rounded-btn text-sm transition-colors">
-          Cancel
-        </button>
-      </div>
-    </form>
+          <input type="hidden" {...register('illustration')} />
+          {errors.illustration && <Err>{errors.illustration.message}</Err>}
+
+          {serverErr && <p className="text-sm text-error">{serverErr}</p>}
+
+          <Actions onCancel={() => router.back()} label={isEdit ? 'Update' : 'Create'} busy={busy || loadingExisting} />
+        </div>
+      </form>
+
+      <AttestDialog
+        open={!!pending}
+        busy={busy}
+        onClose={() => !busy && setPending(null)}
+        onAnswer={() => pending && save(pending)}
+      />
+    </>
   );
 }

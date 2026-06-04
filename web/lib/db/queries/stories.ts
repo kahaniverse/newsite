@@ -1,6 +1,6 @@
 import { sql } from '@/lib/db/client';
 import { Story, ContributorRole, Genre } from '@/lib/types';
-import { parsePgTextArray } from '@/lib/db/parse';
+import { parsePgTextArray, isUuid } from '@/lib/db/parse';
 
 function rowToStory(row: Record<string, unknown>): Story {
   const contributors = (row.contributors as Array<{
@@ -68,24 +68,30 @@ export async function getStories({
 }
 
 export async function getStoryById(id: string): Promise<Story | null> {
-  const rows = await sql`
-    SELECT s.*,
-           u.slug AS universe_slug, u.name AS universe_name,
-           (
-             SELECT json_agg(json_build_object(
-               'author_id', a.id, 'display_name', a.display_name,
-               'avatar_image', a.avatar_image, 'role', sc.role
-             ))
-             FROM story_contributors sc
-             JOIN authors a ON a.id = sc.author_id
-             WHERE sc.story_id = s.id AND sc.accepted_at IS NOT NULL
-           ) AS contributors
-    FROM stories s
-    JOIN universes u ON u.id = s.universe_id
-    WHERE s.id = ${id}
-    LIMIT 1
-  `;
-  return rows.length ? rowToStory(rows[0]) : null;
+  if (!isUuid(id)) return null;
+  try {
+    const rows = await sql`
+      SELECT s.*,
+             u.slug AS universe_slug, u.name AS universe_name,
+             (
+               SELECT json_agg(json_build_object(
+                 'author_id', a.id, 'display_name', a.display_name,
+                 'avatar_image', a.avatar_image, 'role', sc.role
+               ))
+               FROM story_contributors sc
+               JOIN authors a ON a.id = sc.author_id
+               WHERE sc.story_id = s.id AND sc.accepted_at IS NOT NULL
+             ) AS contributors
+      FROM stories s
+      JOIN universes u ON u.id = s.universe_id
+      WHERE s.id = ${id}
+      LIMIT 1
+    `;
+    return rows.length ? rowToStory(rows[0]) : null;
+  } catch (e) {
+    console.error('getStoryById failed', e);
+    return null;
+  }
 }
 
 export async function createStory(data: {

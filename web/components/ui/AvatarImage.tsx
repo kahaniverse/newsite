@@ -1,9 +1,15 @@
+import { sampleAvatar } from '@/lib/sample-images';
+
 interface Props { src?: string; alt: string; size?: number; }
 
 export function AvatarImage({ src, alt, size = 32 }: Props) {
-  return src ? (
+  // Fall back to a deterministic sample portrait so the app shows the
+  // old-app "picture everywhere" look until real avatars are uploaded.
+  const resolved = src || sampleAvatar(alt || 'kahaniverse', Math.max(size * 2, 96));
+
+  return (
     <img
-      src={src}
+      src={resolved}
       alt={alt}
       width={size}
       height={size}
@@ -11,13 +17,5 @@ export function AvatarImage({ src, alt, size = 32 }: Props) {
       className="rounded-full object-cover bg-bg-elevated"
       style={{ width: size, height: size }}
     />
-  ) : (
-    <div
-      className="rounded-full bg-bg-elevated flex items-center justify-center text-text-muted font-semibold"
-      style={{ width: size, height: size, fontSize: size * 0.4 }}
-      aria-label={alt}
-    >
-      {alt[0]?.toUpperCase()}
-    </div>
   );
 }

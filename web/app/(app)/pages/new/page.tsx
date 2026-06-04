@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: 'Add a Page — Kahaniverse' };
 
 export default function NewPagePage() {
   return (
-    <NarrowShell>
+    <NarrowShell title="Add Page">
       <div className="max-w-xl mx-auto py-6 px-2">
         <PageForm />
       </div>
