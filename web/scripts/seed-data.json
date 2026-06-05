@@ -1,0 +1,488 @@
+{
+  "$comment": "Hand-authored seed content loaded by seed-from-json.ts. Universe covers reuse existing /images; story covers were sourced from Pexels (free license).",
+  "authors": [
+    { "authId": "seed:meera-rao",   "displayName": "Meera Rao",   "bio": "Sci-fi novelist obsessed with generation ships and the people who never see the destination.", "followCount": 8420, "loveCount": 19200 },
+    { "authId": "seed:arjun-sethi", "displayName": "Arjun Sethi", "bio": "Writes quiet stories about loud futures. Former aerospace engineer.", "followCount": 6110, "loveCount": 14300 },
+    { "authId": "seed:priya-menon", "displayName": "Priya Menon", "bio": "Chronicler of small rooms and the people inside them. Thinks the most frightening year was also the most honest.", "followCount": 5240, "loveCount": 12100 },
+    { "authId": "seed:rohan-iyer",  "displayName": "Rohan Iyer",  "bio": "Writes superheroes the way philosophers write thought experiments — to find the exact point where doing good becomes indistinguishable from doing harm.", "followCount": 7030, "loveCount": 15600 },
+    { "authId": "seed:veda-vyasa", "displayName": "Veda Vyasa", "bio": "The immortal scribe, cursed and gifted to remember not only what was, but every history that might have been. Narrator of the Chahamana Legacy.", "followCount": 9990, "loveCount": 28400, "avatarImage": "/images/veda-vyasa.jpeg" }
+  ],
+  "universes": [
+    {
+      "slug": "exodus-2120",
+      "name": "Exodus 2120",
+      "concept": "The world is ending. Some of humanity escapes on generational starships bound for new planetary systems. These are the stories of those who did — and those left behind. Explore themes of survival, identity, and what it means to be human when everything familiar is lost.",
+      "coverImage": "/images/exodus.jpeg",
+      "era": "Far Future",
+      "world": "Sol System & Beyond",
+      "genres": ["scienceFiction"],
+      "creatorAuthId": "seed:meera-rao",
+      "loveCount": 1240,
+      "followCount": 880,
+      "viewCount": 15300,
+      "stories": [
+        {
+          "title": "The Last Sunrise",
+          "synopsis": "A family's final hours on Earth before the fleet departs.",
+          "coverImage": "/images/exodus-2120-last-sunrise.jpeg",
+          "authorAuthId": "seed:meera-rao",
+          "genreTags": ["scienceFiction", "literary"],
+          "status": "published",
+          "loveCount": 430,
+          "viewCount": 5200,
+          "rootPage": {
+            "content": "The evacuation klaxon had sounded for three days, and Amara had stopped hearing it. She stood at the kitchen window with a cup of tea gone cold, watching the last light her family would ever see break over the dead orchard. The apple trees had not fruited in eleven years; their black branches caught the red dawn like cracks in glass.\n\nOn the counter, the boarding chits lay in their plastic sleeves — four of them, Tier-7, the lowest berth the fleet allowed. Steerage to the stars. By noon a transport would take them up to the Arka, and the orchard, the house, the slow warm country of her whole life would burn behind them in the drives' wash.\n\nShe had thought she would feel afraid. Instead she felt the strange, level calm of a person who has run out of decisions but one. Upstairs, the children were still asleep. She could let them dream through these last hours on the only world that had ever held them — or she could wake them, and give them a morning to remember the planet by.",
+            "authorAuthId": "seed:meera-rao",
+            "children": [
+              {
+                "content": "She decided to wake them. She climbed the stairs she had climbed ten thousand times and would never climb again, and she woke them gently, the way she had when they were small and the mornings were ordinary. \"Come down,\" she said. \"I made breakfast.\" It was a lie; she made it true by making it — the last of the real eggs, the bread she'd hoarded, honey from a jar with three spoonfuls left.\n\nThey ate at the table by the window, all four of them, the light climbing gold and then white. Nobody spoke of the Arka. Tomas asked if they could see the orchard one more time, and she said yes, and they went out into the cold and stood among the dead trees while the transport's contrail stitched the sky overhead.\n\nLater, on the ship, in the years of dark between the stars, this was the morning her children would describe when strangers asked them what Earth had been. Not the ending. The table. The honey. The light.",
+                "authorAuthId": "seed:meera-rao",
+                "children": []
+              },
+              {
+                "content": "She let them sleep. Some mercies are small. Let them have one more hour of the world unbroken, one more dream in which nothing was ending. She would carry the last sunrise alone, the way she had carried so much alone, so that they could carry one more morning of peace into the dark.\n\nShe finished her cold tea. She washed the cup and set it in the rack to dry, as if she would use it again tomorrow, as if there would be a tomorrow in this kitchen. Then she sat in the growing light and watched the orchard until the transport's klaxon changed its tone — the five-minute warning — and it was time, at last, to climb the stairs and gather her sleeping children and go.",
+                "authorAuthId": "seed:meera-rao",
+                "children": []
+              }
+            ]
+          }
+        },
+        {
+          "title": "Generation Three",
+          "synopsis": "Born aboard the Arka, Sena has never known gravity.",
+          "coverImage": "/images/exodus-2120-generation-three.jpeg",
+          "authorAuthId": "seed:arjun-sethi",
+          "genreTags": ["scienceFiction"],
+          "status": "published",
+          "loveCount": 295,
+          "viewCount": 3900,
+          "rootPage": {
+            "content": "Sena Okoro had never stood on a planet, and never would. She had been born in the long carousel of the Arka's third deck, where the spin made a gravity that was almost-but-not Earth's, and she had grown up knowing that the world she was named for was a smear of light eighty years ahead, and the world she came from was a smear of light a hundred years behind, and that she belonged to neither.\n\nThey called her people Generation Three. Too late to remember the launch. Too early to see the landing. A whole human life lived in the corridor between, sworn to a destination she would die forty years short of reaching. In the observation blister she pressed her palm to the cold glass and found the target star — Kepler's Lantern, the navigators called it — a single unremarkable point among ten thousand others.\n\nHer grandmother had wept the first time she'd shown it to her, as if it were a homeland. Sena felt nothing. That was the thing she had never told anyone: that she could not love a light she would never land on. The question was what to do with a life that was only ever meant to be the middle of someone else's story.",
+            "authorAuthId": "seed:arjun-sethi",
+            "children": [
+              {
+                "content": "She took up the oar. She did the thing her grandmother had done, and her grandmother before her: she trained for the bridge. If she could not be the hand that landed the Arka, she would be a link in the chain that carried it — one clean handoff in a relay ten generations long, her whole life a single careful stroke of an oar she would never see reach shore.\n\nThere was, she discovered, a kind of peace in it. The navigators had a word, amara, an old word off the manifest of the lost ships, meaning the ones who plant trees they will not sit under. She learned the long math of the drift, the patient correction of a course measured in centuries. And when at last she stood her first watch alone on the bridge, with the target star burning steady in the cross-hairs and the ship asleep behind her, she understood her grandmother's tears — not as grief, but as the unbearable tenderness of carrying something precious a little farther down the dark.",
+                "authorAuthId": "seed:arjun-sethi",
+                "children": []
+              },
+              {
+                "content": "She listened to the drifters. There were others on the Arka who had stopped believing in Kepler's Lantern. They met on the unspun decks where there was no gravity at all, where you could float free of the carousel's lie, and they passed a question between them like contraband: why are we still aiming at a star chosen by the dead?\n\nNewer surveys, they said, had found something closer — a rogue world, lightless and wandering, but warm at its core and reachable in a single lifetime. Theirs. They could land. Not their great-grandchildren — them. All it would take was the courage to seize the bridge and turn the oldest promise on the ship into a lie.\n\nSena went, the first time, only to listen. She told herself that. But when the woman leading them turned and asked her name, and Sena said it, the woman smiled and said, \"Okoro. Your grandmother holds a bridge watch, doesn't she?\" — and Sena understood that she had not come to listen at all. She had come because some part of her wanted, for once in the long corridor of her inherited life, to choose her own star.",
+                "authorAuthId": "seed:arjun-sethi",
+                "children": []
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "the-long-indoors",
+      "name": "The Long Indoors",
+      "concept": "During the great lockdowns of 2020, the world shrank to the size of a window. Inside one apartment tower in a city under curfew, ordinary people learned to live an entire life within four walls — and discovered that isolation is not the same as being alone. These are stories from the quiet year: neighbours who became strangers and strangers who became lifelines, the small heroisms and slow unravelings that happened behind every closed door.",
+      "coverImage": "/images/lockdown.jpeg",
+      "era": "2020-2021 — The Lockdown Years",
+      "world": "A locked-down city; one apartment tower, a hundred lit windows",
+      "genres": ["literary"],
+      "creatorAuthId": "seed:priya-menon",
+      "loveCount": 760,
+      "followCount": 510,
+      "viewCount": 9100,
+      "stories": [
+        {
+          "title": "Balcony Country",
+          "synopsis": "Two strangers on facing balconies fall into a nightly conversation across the one gap they're forbidden to cross.",
+          "coverImage": "/images/the-long-indoors-balcony-country.jpeg",
+          "authorAuthId": "seed:priya-menon",
+          "genreTags": ["romance", "literary"],
+          "status": "published",
+          "loveCount": 340,
+          "viewCount": 4100,
+          "rootPage": {
+            "content": "On the ninth night of the lockdown, Nina carried her wine out to the balcony because the flat had begun to feel like a held breath, and found that she was not the only one. Across the airshaft — close enough to throw a coin, far enough that the rules said it might as well be another country — a man stood on his own balcony in the dark, and lifted his glass to her as though they had agreed to meet.\n\n\"Same time tomorrow?\" he called, when the bottle was done and the city had gone quiet under its curfew. He said it like a joke. She said yes like one too.\n\nBut she came back the next night, and so did he. Across six feet of forbidden air they traded the small currency of two suspended lives — what they were reading, what they were pretending to cook, the names of the planes that no longer crossed the sky. She learned that he was a music teacher with no students, that he hummed when he thought she couldn't hear. He learned that she laughed before she finished her own sentences. Three weeks in, on a night thick with jasmine and sirens, he went quiet and then said, careful as a man stepping onto ice, that he didn't know her surname, her floor, or her phone number — and that he was suddenly afraid of the day the doors would open and the country between them would close.",
+            "authorAuthId": "seed:priya-menon",
+            "children": [
+              {
+                "content": "So she gave him the number. She crossed the air the only way they were allowed — she read the digits out into the dark, slowly, twice, and heard him repeat them back like a vow. A minute later her phone lit on the railing: a single message, his name at last, and beneath it, I'd like to keep talking when the air stops being a wall.\n\nThey did not stop meeting on the balconies. That was the strange tenderness of it — even after the city reopened, even after the first real coffee at a real table where she could finally see that his hands shook when he was nervous, they kept the nine-o'clock appointment with the airshaft. It had become a country with two citizens, and neither of them was willing to emigrate.",
+                "authorAuthId": "seed:priya-menon",
+                "children": []
+              },
+              {
+                "content": "So she kept it to the balcony. \"No,\" she said gently, and watched him absorb it. \"Not the number. Not the floor. If we make it real, it has to survive being real, and I don't think this is built for the ground.\" He was quiet for a long moment. Then he nodded, the way you nod at something true and unwelcome.\n\nThey met every night until the doors opened, and then one evening his balcony was simply empty, and stayed empty, and a young couple with a dog moved in by July. Nina still takes her wine out at nine. She has never once regretted it — but she has never quite decided, either, whether she protected the most honest thing she had, or buried it alive in the one country small enough to keep it.",
+                "authorAuthId": "seed:priya-menon",
+                "children": []
+              }
+            ]
+          }
+        },
+        {
+          "title": "Essential",
+          "synopsis": "A grocery rider is the only thing still moving through the dead city, and becomes the unwilling messenger between a hundred sealed lives.",
+          "coverImage": "/images/the-long-indoors-essential.jpeg",
+          "authorAuthId": "seed:priya-menon",
+          "genreTags": ["literary"],
+          "status": "published",
+          "loveCount": 280,
+          "viewCount": 3400,
+          "rootPage": {
+            "content": "Faisal had the only kind of paper that meant anything now: a laminated card that said ESSENTIAL, which let him move through a city where movement itself had become a crime. He rode the empty arteries of it at dawn, his bag heavy with other people's groceries, the traffic lights cycling green-amber-red for no one but him.\n\nThe tower on Meridian Road was his last stop and his strangest. A hundred sealed flats, a hundred lists, a hundred faces at the gap of a door. He learned them without meaning to. The old man in 7C who ordered exactly one banana every day, as if rationing the future. The woman in 11A who wept when he brought the right brand of her mother's tea. The boy in 4B who answered the door alone and pretended an adult was just in the next room.\n\nOn a grey Tuesday the woman in 11A pressed a folded envelope into his hand with the empty bags. \"Flat 7C,\" she said, not meeting his eyes. \"He won't have a phone that does the messages. Tell him — tell him someone on the eleventh floor remembers him.\" Faisal stood in the stairwell with the envelope, a thing not on any list, not covered by any laminated card, and understood that he had just been asked to carry something heavier than groceries.",
+            "authorAuthId": "seed:priya-menon",
+            "children": [
+              {
+                "content": "He carried it. Of course he carried it — and the next one, and the one after that. Within a month Faisal was running a postal service the government had forgotten to ban: birthday cards across landings, medicine between strangers, a child's drawing from 4B to a grandmother he was no longer allowed to visit on the floor below.\n\nHe never read them. That was his only rule, the thing that let him sleep. He was not the message; he was the road it travelled, the one moving part in a stopped machine. When the city finally exhaled and the doors swung open, the tower threw him a party in the car park, six feet apart, a hundred faces he had only ever seen at the gap of a door — and he realised he had spent the worst year of the century being, for a hundred sealed lives, the proof that the outside world still existed and still cared to knock.",
+                "authorAuthId": "seed:priya-menon",
+                "children": []
+              },
+              {
+                "content": "He almost didn't. The card in his pocket said ESSENTIAL, and a letter was not on the list; if a checkpoint stopped him, if the envelope held something it shouldn't, it was his name on the laminate, his card revoked, his family's only income gone. He climbed to 7C with the groceries and left the envelope in his bag, telling himself he would decide tomorrow.\n\nBut the old man took his single banana and said, unprompted, \"You're the only person I speak to now, you know,\" and something in Faisal gave way. He went back down, retrieved the envelope, climbed the two flights again, and held it out through the gap of the door. He watched the old man read it twice. He watched a man who rationed bananas against an uncertain future decide, right there in the doorway, that the future was worth a second banana after all. After that, Faisal stopped pretending the lists were the whole of his job.",
+                "authorAuthId": "seed:priya-menon",
+                "children": []
+              }
+            ]
+          }
+        },
+        {
+          "title": "The Clap at Eight",
+          "synopsis": "Every evening the tower applauds its frontline workers; the night-shift nurse on the 9th floor can't bring herself to come home to the noise.",
+          "coverImage": "/images/the-long-indoors-the-clap-at-eight.jpeg",
+          "authorAuthId": "seed:priya-menon",
+          "genreTags": ["literary"],
+          "status": "published",
+          "loveCount": 310,
+          "viewCount": 3700,
+          "rootPage": {
+            "content": "At eight o'clock the whole tower came to its windows and clapped. Pots and spoons, cupped hands, a man on the fourteenth floor with an actual brass trumpet — two minutes of joyful noise for the doctors and the nurses and the ones holding the line. From the street it must have sounded like gratitude. From the ninth floor, where Reshma stood in her scrubs with her key in the door, it sounded like an accusation she couldn't name.\n\nShe was the line. She had spent the day on a ward where the clapping did not reach, where she had held a phone to the ear of a man who could no longer speak so his daughter could say the last thing, and then sanitised her hands and done it again two beds down. She did not feel like a hero. She felt like a person who had been handed more grief than one body was built to hold, and was being asked, at eight o'clock, to come home and be applauded for it.\n\nShe stood in the corridor and listened to her neighbours celebrate her through the walls, and found she could not make herself turn the key. Not while the noise was going. Not while she was still, in their kind and terrible imaginations, a symbol instead of a woman who badly needed to sit down on the floor of her own hallway and cry.",
+            "authorAuthId": "seed:priya-menon",
+            "children": [
+              {
+                "content": "So she started timing her shifts around the silence. She would sit in her car in the basement until two minutes past eight, until the last spoon had stopped against the last pot, and only then ride up to a tower gone quiet and let herself in to a home that was only a home and asked nothing of her.\n\nIt was the woman in 9D who noticed — a retired teacher who clapped from the next balcony every night and one evening simply stopped, having done the arithmetic of an always-empty ninth-floor window during the clap. She left no note, made no speech. She just began leaving a cup of chai outside Reshma's door at ten, when the nurse actually came home, the cup still warm, no applause attached. Some gratitude is loud. The kind that helped was the kind that learned to be quiet, and to arrive at the right hour.",
+                "authorAuthId": "seed:priya-menon",
+                "children": []
+              },
+              {
+                "content": "So one night she joined it. She did not plan to. She came home early, the key already in the door when eight o'clock broke over the building like surf, and instead of flinching she stepped to her own dark window and looked out at all of them — the trumpet man, the children with their pots, the whole bright foolish chorus — and she put her exhausted hands together and clapped.\n\nNot for herself. For the porter downstairs who'd kept the lobby clean through all of it. For the boy in 4B she'd seen answering the door alone. For the man whose daughter's last words she had carried in her own ear that afternoon. She clapped until her palms stung, and discovered that the noise she had taken as an accusation could also be a thing you gave away — that she could stand on the inside of the gratitude and the outside of it at once, and that this, tonight, was the only way she knew left to grieve out loud.",
+                "authorAuthId": "seed:priya-menon",
+                "children": []
+              }
+            ]
+          }
+        },
+        {
+          "title": "Flat 4B",
+          "synopsis": "The building's first confirmed case is announced, and fear turns the residents' group chat into a jury.",
+          "coverImage": "/images/the-long-indoors-flat-4b.jpeg",
+          "authorAuthId": "seed:priya-menon",
+          "genreTags": ["thriller", "mystery"],
+          "status": "published",
+          "loveCount": 265,
+          "viewCount": 3550,
+          "rootPage": {
+            "content": "The message landed in the building group at 9:46 p.m., and within the hour the tower had appointed itself a court. CONFIRMED CASE IN 4B, the secretary wrote. PLEASE TAKE PRECAUTIONS. He meant it kindly. He had no idea what he had unlocked.\n\nBy ten the chat had two hundred messages. Who were they? Did they go out? Someone had seen the delivery rider go up to the fourth floor — was that them, were they ordering food while the rest of us stayed disciplined? A photograph appeared, blurred, of a masked figure in the lobby that morning; eleven people declared it proof of something. The word irresponsible was used, and then the word disgusting, and the temperature in two hundred separate flats rose by the same degree.\n\nMalini watched it scroll from her sofa on the sixth floor, thumb hovering. She knew who lived in 4B, more or less. A nurse, she thought, or a doctor — she'd seen the scrubs in the lift, the exhausted eyes above the mask. She knew that the boy in 4B sometimes answered the door alone. She knew that the fear in the chat was real, and that real fear is the most flammable thing a building holds. Her thumb hovered over the keyboard. Whatever she typed next, two hundred people were waiting to agree with it.",
+            "authorAuthId": "seed:priya-menon",
+            "children": [
+              {
+                "content": "She defended them. She typed slowly, because she knew the chat would turn on her too: 4B is a nurse. She has spent this whole month on a COVID ward keeping strangers' parents alive. If she is sick, she got sick saving people like us. The least we owe her is silence instead of a trial.\n\nFor a full minute, nothing. Then the secretary wrote noted, and a neighbour wrote I didn't know, and another wrote what can we do to help, and the jury, deprived of its certainty, quietly dissolved back into two hundred frightened people who had needed someone to remind them they were also two hundred decent ones. A grocery list went round the next morning — who could spare what for the fourth floor. The photograph was deleted. Nobody apologised, exactly, but the building had stepped back from the edge of becoming something it would not have been able to forgive.",
+                "authorAuthId": "seed:priya-menon",
+                "children": []
+              },
+              {
+                "content": "She said nothing — and saying nothing, she would learn, was its own kind of vote. She put the phone face-down and let the chat burn through the night without her, telling herself it wasn't her business, that adding fuel and adding water were both still touching the fire.\n\nBy morning someone had taped a printed sign in the lift: 4TH FLOOR — KEEP AWAY. By afternoon the nurse's grocery deliveries were being left at the lobby instead of her door, untouched, as if her food were contagious too. Malini rode down past the sign and felt the small, specific shame of a person who could have changed the temperature of a room with four sentences and chose the safety of the wall instead. When the doors finally opened on the world again, the nurse in 4B moved out within the month, and the building told itself it was for the schools, the commute, the space — anything but the sign in the lift that no one, including Malini, had ever taken down.",
+                "authorAuthId": "seed:priya-menon",
+                "children": []
+              }
+            ]
+          }
+        },
+        {
+          "title": "Sourdough",
+          "synopsis": "A man who has lived alone for a decade starts leaving anonymous loaves at his neighbours' doors — and slowly knits the whole floor together.",
+          "coverImage": "/images/the-long-indoors-sourdough.jpeg",
+          "authorAuthId": "seed:priya-menon",
+          "genreTags": ["literary", "romance"],
+          "status": "published",
+          "loveCount": 290,
+          "viewCount": 3300,
+          "rootPage": {
+            "content": "Anand had lived alone for ten years and had been good at it, which is a different thing from being happy at it. The lockdown did not frighten him the way it frightened the families; solitude was his native country and he held a lifelong passport. What undid him, in the second month, was the yeast.\n\nHe had started a sourdough culture out of boredom — flour and water and patience, a small living thing on his counter that needed him at the same hour every day. It thrived. It thrived so violently that by week three he was producing more bread than one quiet man could eat, golden blistered loaves cooling on every surface, the smell of them filling a flat that had not smelled of anything for a decade.\n\nSo he began to leave them. A loaf in a paper bag outside 12C at dawn, before anyone could see. Another at 12A, where a baby had been crying for weeks. No note, no name — just bread, warm, on the mat, as if the building itself had decided to feed its own. He told himself it was only to use up the surplus. He did not yet admit that he set three alarms now, that the culture had given his shapeless days a spine, or that for the first time in ten years he was making something for the specific purpose of someone else's morning.",
+            "authorAuthId": "seed:priya-menon",
+            "children": [
+              {
+                "content": "On the day he finally signed one, he almost didn't. He tucked a small card into the bag for 12A — From 12B. The yeast made too much. There is more if you want it — and stood at his own door for a long time before he could make himself walk the loaf down the corridor and knock.\n\nThe young mother who answered had the particular tiredness he recognised from his own mirror. She read the card, and then she did the thing he had not braced for: she cried, just a little, and said the bread had been the only nice surprise in forty days, and asked — through the gap of the door, six feet and a decade of his solitude between them — whether he might like to learn how she made her grandmother's pickle, since he clearly had time and yeast to spare. By autumn the twelfth floor had a standing arrangement: his bread, her pickle, the corridor a marketplace of small kept hungers. Anand was still a man who lived alone. He had simply, at last, stopped doing it in private.",
+                "authorAuthId": "seed:priya-menon",
+                "children": []
+              },
+              {
+                "content": "He stayed anonymous, and that was its own quiet happiness. The whole floor came to believe in the bread the way children believe in a kind ghost — 12C swore it was the old woman in 12F; 12F was certain it was the secretary making amends for something. A theory board of guesses ran in the building chat for a month. Anand read it every night and said nothing and grinned into his tea, the only man in the tower who knew, the secret a warm coal he carried alone.\n\nHe never did sign a loaf. When the lockdown lifted and the bakeries reopened he kept baking anyway, kept leaving them, because somewhere in those months the surplus had stopped being an accident and become the nearest thing he had to a way of saying I am still here, I still think of you, even to people who would never know his name. Some men knock. Anand simply fed the building and let it wonder, and called that, privately, the most company he had kept in years.",
+                "authorAuthId": "seed:priya-menon",
+                "children": []
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "being-super",
+      "name": "Being Super",
+      "concept": "Being Super is not a story about heroes and villains. It is a long argument about whether those words mean anything once a single person holds the force of a flood. In a world where power has arrived — some born with it, some chosen by older things, some who simply woke one morning able to unmake a city — the universe asks the same question from a hundred angles: when you can do anything, what should you do, and who gets to decide? Here the goddess who drinks blood may be the only thing holding a worse darkness at bay. The hero who never kills may be choosing his own clean conscience over a thousand strangers. The villain may simply be the one willing to say the cost out loud. Gods of every pantheon and vigilantes off every street corner walk the same thin line — and the line is the story.",
+      "coverImage": "/images/being-super.jpeg",
+      "era": "Mythic present — where the old powers and the new collide",
+      "world": "Earth, where the gods never left and we are catching up",
+      "genres": ["fantasy", "literary"],
+      "creatorAuthId": "seed:rohan-iyer",
+      "loveCount": 1580,
+      "followCount": 1120,
+      "viewCount": 21400,
+      "characters": [
+        {
+          "name": "Kali, the Mother Who Eats the World",
+          "image": "/images/kaali.jpeg",
+          "description": "She devours time itself. Mortals see only the blood on her tongue and call it destruction; she calls it weeding the garden before the rot can take the whole of it. The kindest thing in creation, wearing the face of its worst nightmare.",
+          "creatorAuthId": "seed:rohan-iyer"
+        },
+        {
+          "name": "The Storm That Judges",
+          "image": "/images/being-super-thunder.jpeg",
+          "description": "An old sky-god still answering prayers no one remembers making. Every lightning strike is a verdict, and he has learned the hardest law of power: that you cannot punish one guilty man from the sky without weighing the innocents standing downwind.",
+          "creatorAuthId": "seed:rohan-iyer"
+        },
+        {
+          "name": "The Custodian",
+          "image": "/images/being-super-never-kills.jpeg",
+          "description": "The world's most beloved hero, who has never taken a life. He wears that record like a halo. He has never once allowed himself to ask what the halo costs the people he chose not to save by keeping his own hands clean.",
+          "creatorAuthId": "seed:rohan-iyer"
+        }
+      ],
+      "stories": [
+        {
+          "title": "The Mother Who Eats the World",
+          "synopsis": "On a battlefield that mortals read as a massacre, Kali dances — and only she knows what she is truly devouring.",
+          "coverImage": "/images/kaali.jpeg",
+          "authorAuthId": "seed:rohan-iyer",
+          "genreTags": ["fantasy", "horror", "literary"],
+          "status": "published",
+          "loveCount": 520,
+          "viewCount": 6800,
+          "rootPage": {
+            "content": "The boy had come to the field to find his brother's body and found a goddess instead. She danced where the dead were thickest, black against a sky the colour of an old bruise, her necklace of skulls clacking like a loom, her many hands full of blades and severed things. Where her feet fell, the earth steamed. Where her tongue touched the air, the screaming stopped.\n\nEvery story he had ever been told called this evil. Here was the proof of it — a woman drunk on slaughter, dancing on the corpses of the slain, laughing while the world burned down to its embers. He had a stone in his hand before he knew he had picked it up. He had a prayer in his mouth, and it was not a prayer of worship; it was the old human prayer that runs make it stop, make it stop, make her stop.\n\nThen she turned, and looked at him, and he saw that she was weeping even as she laughed — that the blood on her was not all her enemies', that some of it was her own — and the boy understood that he did not understand anything at all. He could throw the stone and run, and tell the world he had seen a demon. Or he could drop it, and stay, and ask the only question that mattered: not what are you, but what are you eating, and what happens if you stop.",
+            "authorAuthId": "seed:rohan-iyer",
+            "children": [
+              {
+                "content": "He threw the stone and ran. It struck her shoulder and she did not so much as flinch; he was already gone, stumbling over the dead, and he did not look back to see whether she had watched him go.\n\nHe lived a long life and told the story a thousand times, and each time he told it she grew darker — the weeping forgotten, the laughter sharpened into cruelty, the blood made entirely her victims'. He gave the world its demon. Mothers frightened children with her. Armies painted her on their shields to excuse their own slaughter, saying see, even heaven dances on the dead.\n\nHe never knew — could not have known — that on the night he fled, the thing she had been holding at bay with that terrible dance slipped one coil looser; that what she devoured on that field was a hunger older than the war, a rot that would have eaten not just the bodies but the very idea of tomorrow. He had seen the surgeon's knife red to the hilt and called it murder, and run before he could learn that the patient was the world.",
+                "authorAuthId": "seed:rohan-iyer",
+                "children": []
+              },
+              {
+                "content": "He dropped the stone and stayed. \"What are you eating,\" he asked, and his voice did not shake, which surprised them both.\n\nShe knelt — the dance stilling, the sky un-bruising by a shade — and she showed him. Beneath the field, beneath the dead, she opened the dark a finger's width, and he saw the thing that waited there: not an army, not a demon, but an absence, a hunger with no bottom, the rot that comes for every garden if nothing is willing to be terrible in its defence. It had no skulls to wear. It would have left nothing behind to mourn.\n\n\"I eat the ending,\" she said, \"so that there can go on being beginnings. I wear the blood so that you do not have to. You called it evil because it was the worst thing you could imagine — but child, I am the mercy you are not yet strong enough to recognise.\" And the boy stayed with her until dawn, holding the lamp while the Mother did her butcher's work, and when at last he walked home he carried a secret heavier than grief: that the most loving act in all creation will, to the frightened, always look exactly like the cruellest.",
+                "authorAuthId": "seed:rohan-iyer",
+                "children": []
+              }
+            ]
+          }
+        },
+        {
+          "title": "What the Thunder Owes",
+          "synopsis": "A storm-god walks a flooded city deciding whether one cruel man is worth the lightning — and what a god owes the millions standing downwind.",
+          "coverImage": "/images/being-super-thunder.jpeg",
+          "authorAuthId": "seed:rohan-iyer",
+          "genreTags": ["fantasy", "literary"],
+          "status": "published",
+          "loveCount": 360,
+          "viewCount": 4500,
+          "rootPage": {
+            "content": "The god walked the drowned street ankle-deep in his own rain, and no one saw him but the dogs. He had been a thunder-god once, in the loud bright dawn of the world, when men built him mountains and fed him the first of the harvest and asked him, plainly, to smite their enemies. The asking had been simple then. The smiting simpler.\n\nNow he stood outside a glass tower where a small cruel man counted money that had drowned the district below — a man whose ledgers had condemned ten thousand families to live where the flood would always come, so that the cost of the levee could stay in his pocket. The god could feel the charge gathering in his chest, the old verdict wanting out. One bolt. The tower a torch. The man a cinder and a lesson.\n\nBut the god was older now, and the years had taught him arithmetic the young storm had never bothered with. The strike would arc the soaked grid. The grid fed the hospital nine streets over, where the flood's victims lay on ventilators that ran on the same current he was about to turn to fire. To punish one guilty man from the sky, he would have to weigh every innocent standing downwind — and the wind, tonight, blew toward the helpless.",
+            "authorAuthId": "seed:rohan-iyer",
+            "children": [
+              {
+                "content": "He struck. He told himself the math was cowardice dressed as care — that a god who would not punish evil because the punishment was inconvenient was no god at all, only a weathervane. The bolt came down white and absolute, and the tower opened like a struck bell, and the small cruel man was a verdict carried out.\n\nNine streets over, the lights died. The ventilators sighed and stopped. By the time the generators coughed awake, the flood had collected its second harvest of the night — quieter than the first, no ledger to blame, just the old simple price of a god who had wanted, for one clean moment, to be simple again. He stood in the dark hospital afterward and understood that he had not delivered justice. He had only moved the drowning from the guilty, who could swim in money, to the innocent, who could not swim at all. The thunder, it turned out, always owes someone. He had simply chosen who would pay.",
+                "authorAuthId": "seed:rohan-iyer",
+                "children": []
+              },
+              {
+                "content": "He stayed his hand. He let the charge bleed back into the clouds, and the small cruel man lived to count another drowned district's money, and the god hated himself with an intensity that would have flattened a city if he had let it loose.\n\nInstead he did the slow, godless thing. He went down into the flood where the dogs were, and he turned the rain — not off, he had never been able to turn it off — but aside, a degree of wind here, a held cloud there, buying the hospital an hour, buying a stranded family the ten minutes the boats needed. No one prayed to him for it. No one built him a mountain. By dawn the cruel man was richer and the helpless were, a few of them, alive who would not otherwise have been, and the god sat on a rooftop wrung out to nothing and made his peace, again, with the hardest law he knew: that real power is mostly the refusal to use the kind that feels like justice — and that this refusal will never, ever feel like enough.",
+                "authorAuthId": "seed:rohan-iyer",
+                "children": []
+              }
+            ]
+          }
+        },
+        {
+          "title": "The Man Who Never Kills",
+          "synopsis": "The world's most beloved hero has one unbreakable rule. His captured enemy offers him a clean proof that the rule is just vanity wearing a halo.",
+          "coverImage": "/images/being-super-never-kills.jpeg",
+          "authorAuthId": "seed:rohan-iyer",
+          "genreTags": ["fantasy", "thriller", "literary"],
+          "status": "published",
+          "loveCount": 470,
+          "viewCount": 6100,
+          "rootPage": {
+            "content": "The Custodian had the killer in a grip that could fold steel, and the killer — bleeding, beaten, entirely his — was laughing.\n\n\"You won't,\" the man said, through a split lip. \"You never do. That's your whole brand, isn't it? The hero who's never taken a life. You'll cuff me, and the cell will hold me for a year, and then I'll be out, and I'll do it again — the school, or the next one, or the one after — and every child I take after tonight, you took with me. Because you had me. Right here. And you chose your clean hands over their open eyes.\"\n\nThe Custodian had heard taunts before. This was not a taunt; it had the awful symmetry of a proof. He had counted, once, in a sleepless grey hour, the names of the people his spared enemies had gone on to kill. The list was long. He had stopped counting not because it ended but because he could not carry it. His rule had always felt like the highest thing about him — the one line he would not cross, the thing that made him better than the things he fought. Tonight, with the man's pulse under his thumb and the next victims somewhere out there already breathing, it felt, for the first time, like the most expensive vanity in the world.",
+            "authorAuthId": "seed:rohan-iyer",
+            "children": [
+              {
+                "content": "He held the line. He let go of the man's throat, and cuffed him, and turned him over to a system that everyone in the alley — the hero, the killer, the trembling officer — knew would fail. \"Maybe you're right,\" the Custodian said quietly. \"Maybe someone dies because of what I won't do tonight. But the day I decide which living person doesn't get a tomorrow, I become a man who decides that. And there is no version of me that does it only once, only to the ones who deserve it. I've met the men who started there. I will not be the last clean thing I know how to be.\"\n\nIt was not a victory. The killer was out in fourteen months. The Custodian read the name in the news and added it to the list he no longer counted, and he did not pretend, to himself, that his conscience was worth that name. He had only decided that a world with a line in it, held at a terrible cost, was one he could still live in — and that a world where the kindest man alive had learned to kill the deserving was a darker place than the one he was trying to save.",
+                "authorAuthId": "seed:rohan-iyer",
+                "children": []
+              },
+              {
+                "content": "He crossed it. For the children he could not name yet, for the list he could not carry, he tightened his grip past the point of no return, and the laughing stopped, and the world's most beloved hero became, in the space of one held breath, something the world did not yet have a word for.\n\nThe children he'd imagined were saved. That was true; he made himself say it, after, again and again, because it was the only true thing he had left. But the line, once crossed, did not stay behind him where he'd left it. There was a next man who deserved it, and he was easier; and a man who probably deserved it, and that was easier still; and one grey dawn a man who only might have, and the Custodian's hands moved before his conscience could file an objection, because his hands had learned. He had killed to stop a monster and found that the killing was a door, not a wall — and that he had spent his whole career standing guard at it, not because he was vain, but because some part of him had always known exactly how short the walk was to the other side.",
+                "authorAuthId": "seed:rohan-iyer",
+                "children": []
+              }
+            ]
+          }
+        },
+        {
+          "title": "The Arithmetic of Mercy",
+          "synopsis": "The villain everyone hunts kills the few to save the many — and is the only person willing to do the math out loud and sign his name to it.",
+          "coverImage": "/images/being-super-arithmetic.jpeg",
+          "authorAuthId": "seed:rohan-iyer",
+          "genreTags": ["fantasy", "thriller", "literary"],
+          "status": "published",
+          "loveCount": 410,
+          "viewCount": 5200,
+          "rootPage": {
+            "content": "They let the journalist into the cell because the man had asked for her by name, and because the man, restrained behind a wall of reinforced glass, was the most hated person alive.\n\nHe did not look like a monster. He looked like a tired accountant, which, he told her, was closer to the truth than the headlines. \"I can see them,\" he said. \"The branches. Every choice, every consequence, fanning out. It came with the power; I didn't ask for it. I see that if this man lives, a thousand die in eleven years. I see that if this child grows up, a war does not. And then I see that everyone else is too squeamish to act on what I can plainly read — so they let the thousand die, and call themselves good, and call me the devil for spending one life to keep the books from ending in red.\"\n\nShe had come to expose him. She had her questions sharpened. But he answered each one with arithmetic so clean it frightened her — the names of the saved, the dates of the catastrophes that never came — and she realised the story was no longer the one she'd planned. The story was the page in front of her: his full confession, every life he'd spent and every multitude he claimed it bought. She could publish it as the ravings of a murderer. Or she could publish it as it was, and let the world feel the thing she was feeling now, which was the unbearable suspicion that he might be right.",
+            "authorAuthId": "seed:rohan-iyer",
+            "children": [
+              {
+                "content": "She published the confession whole. Every number. Every name. She let him do his arithmetic in the daylight, where the whole world could check his sums.\n\nAnd the world, it turned out, did not want to check his sums. It wanted a monster, and she had given it a mirror, and it hated her for it. Half of them called her his accomplice. The other, quieter half were worse: they wrote to her in the dark, asking how to learn what he knew, asking whether the man down the street, the cruel one, the one whose ledgers drowned a district — whether his arithmetic might not also come out in the black. She had wanted to end him by showing the world his logic. Instead she had taught the world his logic, and learned the thing he already knew: that the truly dangerous idea is not that one evil man does the math. It is that the math, once spoken aloud, is so very easy for everyone else to start doing too.",
+                "authorAuthId": "seed:rohan-iyer",
+                "children": []
+              },
+              {
+                "content": "She wrote it as the ravings of a murderer. She kept his numbers out — too dangerous, too seductive — and gave the world the monster it could safely hate, the killer with the cold eyes, no arithmetic attached. It was the responsible thing. It was, she told herself for years, the right thing.\n\nThe man was executed to wide relief, and his power died with him, and the catastrophes he claimed to have prevented began, more or less on the schedule he had named, to arrive. A war he'd said a child would have stopped came on time. A collapse he'd dated to the spring arrived in the spring. She covered each one, and at every funeral she carried the same small unforgivable knowledge: that she had held his ledger in her hands, and chosen the comfort of a clean villain over the agony of an honest one, and that the only person who had ever been willing to say the true cost of the world out loud was a man she had helped the world put to death for saying it.",
+                "authorAuthId": "seed:rohan-iyer",
+                "children": []
+              }
+            ]
+          }
+        },
+        {
+          "title": "Minor Power",
+          "synopsis": "An ordinary woman wakes able to do exactly one small, near-useless thing. In a world of gods and monsters, she has to decide what 'super' was ever supposed to mean.",
+          "coverImage": "/images/being-super-minor-power.jpeg",
+          "authorAuthId": "seed:rohan-iyer",
+          "genreTags": ["literary"],
+          "status": "published",
+          "loveCount": 380,
+          "viewCount": 4700,
+          "rootPage": {
+            "content": "When the powers came, the world divided cleanly into the gods and the rest, and Meher woke up firmly among the rest. Her power, such as it was, arrived without ceremony on an ordinary Tuesday: she could feel, exactly one second before it happened, when someone near her was about to cry. That was all. Not why. Not how to stop it. Just the one-second warning, a small cold bloom behind her sternum, and then the stranger's face would crumple and it would be true.\n\nIt was, by every measure the new world used, useless. It moved nothing. It lifted nothing, broke nothing, saved no cities. On the registry she was filed under Negligible, and she filed herself there too — a woman with a party trick in an age of miracles, watching the broadcasts of the storm-gods and the flying titans and feeling the precise size of her own insignificance.\n\nThen one evening on a crowded platform the cold bloom came, sharp and close, and she turned and saw him — a young man at the yellow line, ordinary as she was, a second away from tears and, she understood all at once, a second away from something far worse than tears. She had a single second of warning and a power everyone agreed was worthless. She could look away, the way the world had taught her to, and let the negligible woman do the negligible nothing she was rated for. Or she could decide, right now, that one second and one small true thing about another human heart was the most super power there had ever been.",
+            "authorAuthId": "seed:rohan-iyer",
+            "children": [
+              {
+                "content": "She moved. She crossed the second the way the gods crossed the sky, and she was beside him before the tears fell, and she said the only thing she had — not a speech, not a rescue, just \"Hey. Hey. I know. I can tell. Stay and talk to me a minute\" — and she put her negligible hand on his negligible arm, and the train came and went without him in front of it.\n\nThey sat on a bench until his hands stopped shaking. She never learned to lift a car. She never made a headline. But she learned the shape of her gift, which was not the warning — the warning was nothing — it was what the warning bought: the one second of grace in which a human being who had been seen might choose to stay. She worked platforms after that, and waiting rooms, and the grey edges of bridges, an unregistered woman doing an unrankable work, and she stopped watching the broadcasts of the gods entirely. They saved millions, abstractly, from the sky. She saved one, and then one, and then one, by hand, which she came to believe was the only number that had ever really meant anything.",
+                "authorAuthId": "seed:rohan-iyer",
+                "children": []
+              },
+              {
+                "content": "She looked away. She had been taught her whole short powered life that she was negligible, and in the half-second the lesson held, and she turned her face to the departure board the way you turn from a thing you have decided is not yours to carry.\n\nThe sound, when it came, was very loud and then very final, and the cold bloom behind her sternum guttered out, and Meher stood on a platform that the gods would never visit and understood, far too late, the precise cost of believing the world's arithmetic about her own worth. No one blamed her. No registry had rated her responsible. That was the cruelty of it — she had committed no crime the new world recognised, had simply accepted its verdict that one second and one small true thing were not power enough to matter. She spent the rest of her life unlearning that verdict, warning after warning, never once looking away again, trying to balance a ledger that had begun with the one name she had let the silence keep.",
+                "authorAuthId": "seed:rohan-iyer",
+                "children": []
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "chahamana-legacy",
+      "name": "Chahamana Legacy",
+      "concept": "1191 CE. One arrow changes everything. When Prithviraj Chauhan's arrow finds Muhammad of Ghor at the First Battle of Tarain, the conquest of Bharat never comes. Nalanda never burns. India is never ruled by foreign hands — and by 1825, a united, enlightened Bharat splits the atom. Narrated by Veda Vyasa, the immortal scribe who remembers not only what happened but what could have, the Chahamana Legacy follows lives bound across eight centuries: Ishaan Chauhan, the last heir of a dynasty that never fell; Aaryahi, the woman who once shielded Nagasaki from the bomb; and Aditri Dastur, a traveller slipping backward through time to rescue a future that was never hers. Part alternate history, part romantic thriller, part science fiction, this is a world that reimagines the subcontinent's destiny — and asks what India might have become if a single moment had gone differently.",
+      "coverImage": "/images/chahamana-legacy.jpeg",
+      "era": "1191 CE onward — an unconquered Bharat",
+      "world": "Bharat, the timeline where Tarain was won",
+      "genres": ["scienceFiction", "historical"],
+      "creatorAuthId": "seed:veda-vyasa",
+      "loveCount": 2040,
+      "followCount": 1610,
+      "viewCount": 33800,
+      "characters": [
+        {
+          "name": "Veda Vyasa",
+          "image": "/images/chahamana-vyasa.png",
+          "description": "The immortal scribe who set down the Mahabharata and was condemned never to forget. He alone carries both histories — the one that happened, and the one where the arrow missed — and the weight of knowing which world the rest of us were spared.",
+          "creatorAuthId": "seed:veda-vyasa"
+        },
+        {
+          "name": "Prithviraj Chauhan",
+          "image": "/images/chahamana-prithviraj.png",
+          "description": "The Chahamana king whose single arrow at Tarain bent the river of time. In the timeline that was lost he is a tragedy; in the one that was won, the founder of an age — and he never learns which he was meant to be.",
+          "creatorAuthId": "seed:veda-vyasa"
+        },
+        {
+          "name": "Ishaan Chauhan",
+          "image": "/images/chahamana-ishaan.jpeg",
+          "description": "The last heir of a dynasty that never fell, born into the long noon of an enlightened Bharat and haunted by a lineage of victories he did nothing to earn.",
+          "creatorAuthId": "seed:veda-vyasa"
+        },
+        {
+          "name": "Aaryahi",
+          "image": "/images/chahamana-aaryahi.jpeg",
+          "description": "The woman who once stood between Nagasaki and the fire and held. Bharat's most decorated and most unquiet hero, who learned that to shield a city is to carry, ever after, the weight of every life inside it.",
+          "creatorAuthId": "seed:veda-vyasa"
+        },
+        {
+          "name": "Aditri Dastur",
+          "image": "/images/chahamana-aditri.jpeg",
+          "description": "A traveller slipping backward through time to rescue a future that was never hers — falling, as she goes, out of one history and into another, until she is no longer certain which one she is trying to save.",
+          "creatorAuthId": "seed:veda-vyasa"
+        }
+      ],
+      "stories": [
+        {
+          "title": "The Arrow at Tarain",
+          "synopsis": "1191 CE — the single arrow that forks history. One archer's breath at the First Battle of Tarain, and the two worlds that wait on either side of his release.",
+          "coverImage": "/images/chahamana-tarain.jpeg",
+          "authorAuthId": "seed:veda-vyasa",
+          "genreTags": ["historical", "scienceFiction"],
+          "status": "published",
+          "loveCount": 720,
+          "viewCount": 9400,
+          "rootPage": {
+            "content": "I have set down the deaths of heroes and the births of ages, and I tell you that history does not turn on the grand things men build it monuments to. It turns on a breath. On the cold dawn at Tarain in the year your calendars number 1191, it turned on the breath of a single archer, and I — who am condemned to remember every river time might have run — stood at his shoulder where no living eye could see me, and watched the world hold still.\n\nPrithviraj Chauhan's lines had broken the centre, and across the churned field, half-shielded by his fleeing guard, rode Muhammad of Ghor. An archer of the Chahamana knelt in the mud with the king's own order in his ears: the man on the grey horse, before he reaches the trees. He drew. The horn of his bow creaked. The wind, which decides more battles than valour ever has, came up off the river and pressed against the arrow's flight, and the archer felt it, and shifted, by the width of a thumb, the angle of his aim.\n\nHere is where the river forks, and I alone stand in the water of both channels. In one, the wind wins and the arrow drinks the empty air, and a conqueror rides into the trees and out the far side of them into your world — the one you were born in, where Nalanda burns and the centuries go dark. In the other, the thumb's width holds. I will not tell you yet which one his fingers chose. I will only ask you to feel, as I have felt for eight hundred years, how little the whole weight of a civilisation was balanced upon.",
+            "authorAuthId": "seed:veda-vyasa",
+            "children": [
+              {
+                "content": "The thumb's width held. The arrow flew true, and found the gap above the breastplate of Muhammad of Ghor, and the conqueror of a world that will now never exist fell from his grey horse into the mud of a field he had thought to make the doorway of his empire. The door did not open. It closed, that morning, forever.\n\nI watched the consequence unfurl down the centuries like a banner too long to see the end of. The Ghorid tide broke on a Bharat that did not fall, and receded, and did not come again. Nalanda kept its lamps lit — ten thousand scholars, nine million manuscripts, the unbroken thread. No foreign throne was raised over Delhi; no distant company came to weigh the land in its ledgers. The dynasty that should have ended at Tarain instead began there, and the long noon of the Chahamana age came on, and by the year 1825 a Bharat that had never once been conquered, never once been told its knowledge was a lesser thing, looked into the heart of the atom and split it — not in vengeance, for it had no conqueror to avenge, but in the clear cold curiosity of a people who had been allowed, for six hundred unbroken years, simply to think. All of it. From one thumb's width. From one held breath. Remember that, the next time you are told that nothing you do can matter.",
+                "authorAuthId": "seed:veda-vyasa",
+                "children": []
+              },
+              {
+                "content": "But you should know what I carry, who remembers the other channel too. Come, stand with me in the water that runs the other way — the world where the wind won.\n\nThere, the arrow drinks the empty air. The grey horse reaches the trees. Muhammad of Ghor rides out the far side and returns, the next year, and the year after, and the door swings open and never again fully shuts. There, Nalanda burns; I have stood in that library too, and watched three months of smoke rise from nine million books, and heard the long silence settle that your world calls simply the past. There, the thread is cut and re-knotted by other hands, and a great people spend centuries being told the lamp they lit was darkness. That is the timeline you were born into. That is the history you call real.\n\nI do not tell you this to grieve you. I tell you so that you understand what the Chahamana Legacy is, and why I, of all scribes, was the one cursed to write it: because I alone stood at both shoulders of that archer, in both worlds, and I alone know that the difference between the age of light and the long dark was not the gods, not destiny, not the worth of a civilisation — but the width of a thumb, and a single man's choice to hold his breath against the wind.",
+                "authorAuthId": "seed:veda-vyasa",
+                "children": []
+              }
+            ]
+          }
+        },
+        {
+          "title": "The Woman Who Shielded Nagasaki",
+          "synopsis": "An enlightened Bharat has the power to reach across the world in an instant — and Aaryahi is the one standing over Nagasaki when the second sun begins to fall.",
+          "coverImage": "/images/chahamana-aaryahi.jpeg",
+          "authorAuthId": "seed:veda-vyasa",
+          "genreTags": ["scienceFiction", "historical", "thriller"],
+          "status": "published",
+          "loveCount": 610,
+          "viewCount": 8100,
+          "rootPage": {
+            "content": "In the world that was won, Bharat came late to the bomb and early to the wisdom of it. By 1945 the unconquered subcontinent had reached the atom a generation before, and recoiled a generation deeper — had built, instead of a weapon, the Kavacha: a lattice that could throw a shield of bound force across any distance the operators could hold a place in their minds. It had never been used on a city. It had never needed to be. That, said the elders of the lattice, was the whole point of building it.\n\nAaryahi was the finest mind the Kavacha had ever trained, and on the morning your histories remember she was the one in the chair when the watchers cried out that a second sun was falling on Nagasaki. There was no council to convene, no permission to seek; there was the falling, and the lattice, and her. To raise the shield over a foreign city in the half-breath remaining would take more than the lattice was rated to give. It would take the operator's own life-fire poured into the bond, a debt the body does not recover from. She had perhaps one second — the same one second, Vyasa would later write, that an archer once held against the wind at Tarain — to decide whether an enlightened people's power was a thing to be spent, or merely to be kept safe and admired.",
+            "authorAuthId": "seed:veda-vyasa",
+            "children": [
+              {
+                "content": "She poured herself into the bond. Across nine thousand kilometres the Kavacha bloomed — a dome of bound force over Nagasaki, drawn not from the lattice's failing reserves but from the marrow of the woman in the chair — and the second sun broke upon it and did not break the city. The light that should have unmade a hundred thousand lives guttered against a shield made of one life freely given, and held, and the people below looked up at a sky that had caught fire and, impossibly, kept them.\n\nAaryahi did not die, though the lattice elders said by every law of the bond she should have. She came back from the chair white-haired at thirty, her hands trembling ever after, her own life-fire spent down to a coal — and she carried, for all her remaining years, the strangest grief Bharat's heroes had ever been asked to bear: not the weight of the lives she had failed to save, but the weight of the hundred thousand she had, every one of them a stranger, every one of them now a debt of her own body that she could never explain and never put down. To shield a city, she learned, is to adopt it. She had a hundred thousand children in a country that had tried to burn them, and not one of them would ever know her name.",
+                "authorAuthId": "seed:veda-vyasa",
+                "children": []
+              },
+              {
+                "content": "She hesitated. Who can blame the half-breath of it? The bond would take her life-fire; the city was an enemy's; no law and no elder had ever asked an operator to die for strangers across the sea. For the length of one human flinch, Aaryahi was only a person who wished to go on living — and that flinch, in the arithmetic of the falling, was a thing that could not be taken back.\n\nThe shield rose late. It caught the worst of the light but not the first of it, and Nagasaki was not unmade but it was not whole, and Aaryahi lived with her life-fire mostly intact and her sleep ruined forever. This is the harder of the two tellings, and I set it down because it is also true somewhere in the branching, and because Aaryahi herself asked me to: she wanted it remembered that the gap between the hero who does not hesitate and the human who does is exactly one second wide, and that she had stood inside that second and felt how long it is. She spent the rest of her life closing it — training the next operators not in the working of the lattice, which any clever mind could learn, but in the one thing the lattice could not teach: how to spend yourself, completely, for a stranger, in the half-breath before your body remembers it is afraid.",
+                "authorAuthId": "seed:veda-vyasa",
+                "children": []
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

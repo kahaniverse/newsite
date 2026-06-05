@@ -51,6 +51,7 @@ export function ReactionsStrip({
           type="button"
           onClick={(e) => { e.stopPropagation(); toggle('love'); }}
           className={`flex items-center gap-1.5 text-brand ${active.love ? 'reaction-active' : ''}`}
+          data-testid="reaction-love"
           aria-label={`Love — ${counts.love}`} aria-pressed={active.love}
         >
           <Heart size={size} filled={active.love} /><span className="text-xs tabular-nums text-paper-ink">{counts.love.toLocaleString()}</span>
@@ -59,6 +60,7 @@ export function ReactionsStrip({
           type="button"
           onClick={(e) => { e.stopPropagation(); toggle('follow'); }}
           className="flex items-center gap-1.5 text-brand"
+          data-testid="reaction-follow"
           aria-label={`Follow — ${counts.follow}`} aria-pressed={active.follow}
         >
           <Compass size={size} filled={active.follow} /><span className="text-xs tabular-nums text-paper-ink">{counts.follow.toLocaleString()}</span>

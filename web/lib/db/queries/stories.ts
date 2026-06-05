@@ -38,9 +38,12 @@ export async function getStories({
   status?: string; q?: string;
 }): Promise<{ data: Story[]; total: number }> {
   const offset = (page - 1) * limit;
+  // Single round-trip: COUNT(*) OVER() yields the unpaginated total per row,
+  // replacing the second sequential count query to Neon.
   const rows = await sql`
     SELECT s.*,
            u.slug AS universe_slug, u.name AS universe_name,
+           COUNT(*) OVER() AS total_count,
            (
              SELECT json_agg(json_build_object(
                'author_id', a.id, 'display_name', a.display_name,
@@ -58,13 +61,10 @@ export async function getStories({
     ORDER BY s.view_count DESC, s.created_at DESC
     LIMIT ${limit} OFFSET ${offset}
   `;
-  const countRows = await sql`
-    SELECT COUNT(*) AS total FROM stories s
-    WHERE (${universeId ?? null}::uuid IS NULL OR s.universe_id = ${universeId ?? null}::uuid)
-      AND (${status ?? null}::story_status IS NULL OR s.status = ${status ?? null}::story_status)
-      AND (${q ?? null}::text IS NULL OR s.title ILIKE ${'%' + (q ?? '') + '%'})
-  `;
-  return { data: rows.map(rowToStory), total: Number(countRows[0].total) };
+  return {
+    data:  rows.map(rowToStory),
+    total: rows.length ? Number(rows[0].total_count) : 0,
+  };
 }
 
 export async function getStoryById(id: string): Promise<Story | null> {

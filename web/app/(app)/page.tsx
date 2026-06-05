@@ -1,51 +1,49 @@
-import { WideShell }   from '@/components/shell/WideShell';
-import { MediumShell } from '@/components/shell/MediumShell';
-import { NarrowShell } from '@/components/shell/NarrowShell';
-import { BrowsePanel }       from '@/components/panels/BrowsePanel';
-import { EntityDetailPanel } from '@/components/panels/EntityDetailPanel';
-import { LeafPanel }         from '@/components/panels/LeafPanel';
-import { auth }              from '@/lib/auth/config';
-import { getUniverses }      from '@/lib/db/queries/universes';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { HorizontalBrowse }   from '@/components/shell/HorizontalBrowse';
+import { NarrowShell }        from '@/components/shell/NarrowShell';
+import { BrowsePanel }        from '@/components/panels/BrowsePanel';
+import { HydrateSelection }   from '@/components/shell/HydrateSelection';
+import { auth }               from '@/lib/auth/config';
+import { getFeaturedUniverses } from '@/lib/db/queries/universes';
+import { getServerQueryClient } from '@/lib/react-query/server';
 
 export const revalidate = 300;
 
 // Unauthenticated visitors are rewritten to /index.html by middleware,
 // so this page only renders for signed-in users.
 export default async function HomePage() {
-  const [session, { data: universes }] = await Promise.all([
+  // Featured list goes through Redis cache-aside (5 min) instead of hitting Neon
+  // on every render; auth() runs in parallel.
+  const [session, featured] = await Promise.all([
     auth(),
-    getUniverses({ page: 1, limit: 5 }),
+    getFeaturedUniverses(),
   ]);
+  const universes = featured.data;
+
+  // Seed React Query with the data we already fetched so client lists keyed on
+  // ['universes','featured'] (e.g. MoreUniverses) hydrate without a mount fetch.
+  const qc = getServerQueryClient();
+  qc.setQueryData(['universes', 'featured'], featured);
 
   return (
-    <>
-      {/* Wide layout (≥1024px) */}
-      <div className="hidden lg:block h-screen">
-        <WideShell session={session}>
-          {[
-            <BrowsePanel key="browse" initialUniverses={universes} heroBleed />,
-            <EntityDetailPanel key="detail" />,
-            <LeafPanel key="leaf" />,
-          ]}
-        </WideShell>
+    <HydrationBoundary state={dehydrate(qc)}>
+      {/* Browse root: start in browse mode (no focused hero in panel 1). */}
+      <HydrateSelection focus={false} />
+
+      {/* Horizontal layout — far-left strip + equal cascading panels (tablet + desktop) */}
+      <div className="hidden md:block">
+        <HorizontalBrowse session={session} initialUniverses={universes} seedCarousel />
       </div>
 
-      {/* Medium layout (768–1023px) */}
-      <div className="hidden md:block lg:hidden h-screen">
-        <MediumShell session={session}>
-          {[
-            <BrowsePanel key="browse" initialUniverses={universes} heroBleed />,
-            <EntityDetailPanel key="detail" />,
-          ]}
-        </MediumShell>
-      </div>
-
-      {/* Narrow layout (<768px) */}
+      {/* Narrow stacked layout (mobile). autoSeed off: both layouts are mounted
+          at once (CSS-hidden, not unmounted), and this hidden carousel's seeding
+          would otherwise keep overwriting the horizontal layout's chosen universe.
+          Narrow has no detail panel to seed anyway — tapping a slide just routes. */}
       <div className="block md:hidden">
         <NarrowShell session={session}>
-          <BrowsePanel initialUniverses={universes} heroBleed />
+          <BrowsePanel initialUniverses={universes} heroBleed autoSeed={false} />
         </NarrowShell>
       </div>
-    </>
+    </HydrationBoundary>
   );
 }

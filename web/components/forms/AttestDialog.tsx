@@ -43,6 +43,7 @@ export function AttestDialog({ open, busy = false, onAnswer, onClose }: Props) {
             type="button"
             disabled={busy}
             onClick={() => onAnswer(true)}
+            data-testid="attest-confirm"
             className="flex-1 btn-pill btn-pill-primary !text-sm disabled:opacity-60"
           >
             {busy ? 'Publishing…' : 'Yes, my original content'}

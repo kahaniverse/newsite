@@ -164,6 +164,40 @@ a {
   to   { transform: translateY(0); }
 }
 
+/* Hide the native scrollbar while keeping the area scrollable. Used by the
+   horizontal panels, which surface their own hover-reveal scroll nubs. */
+.no-scrollbar {
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* old Edge / IE */
+}
+.no-scrollbar::-webkit-scrollbar { display: none; } /* WebKit */
+
+/* Thin hover-reveal scroll button floating over a panel's top/bottom edge. */
+.scroll-nub {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease, transform 150ms ease;
+  z-index: 20;
+}
+.scroll-nub.is-visible { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+.scroll-nub:hover { color: var(--accent); border-color: var(--accent); }
+.scroll-nub-top    { top: 6px; }
+.scroll-nub-bottom { bottom: 6px; }
+
 /* Hero cover image with title overlay (legacy HeroCard). */
 .hero-scrim {
   background: linear-gradient(

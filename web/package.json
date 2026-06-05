@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev":           "node scripts/predev.mjs",
     "dev":              "next dev",
     "build":            "next build",
     "start":            "next start",
@@ -10,7 +11,10 @@
     "typecheck":        "tsc --noEmit",
     "db:migrate":       "tsx scripts/migrate.ts",
     "db:seed":          "tsx scripts/seed.ts",
+    "db:cleanup-seed":  "tsx scripts/cleanup-seed.ts",
     "db:reset":         "tsx scripts/reset.ts",
+    "seed:json":        "tsx scripts/seed-from-json.ts",
+    "seed:avatars":     "tsx scripts/set-author-avatars.ts",
     "generate:carousel":"tsx scripts/generate-carousel.ts",
 
     "stack:up":         "docker compose -f ../docker-compose.yml up -d",
@@ -24,7 +28,14 @@
     "test:watch":       "vitest tests/unit",
     "test:e2e":         "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
-    "test:all":         "npm run test:unit && npm run test:integration && npm run test:e2e"
+    "test:all":         "npm run test:unit && npm run test:integration && npm run test:e2e",
+
+    "demo:single":      "tsx demo/record.ts",
+    "demo:all":         "tsx demo/record.ts --all",
+    "demo:gifs":        "tsx demo/record.ts --gifs",
+    "demo:video":       "tsx demo/edit/render.ts",
+    "demo:intro":       "tsx demo/edit/render.ts --intro-only",
+    "demo:typecheck":   "tsc --noEmit -p demo/tsconfig.json"
   },
   "dependencies": {
     "@hookform/resolvers":         "^5.2.2",
@@ -46,7 +57,10 @@
     "zustand":                     "^4.5.4"
   },
   "devDependencies": {
+    "@mydemo/core":      "file:../../myDemo",
     "@playwright/test":  "^1.47.0",
+    "@remotion/bundler": "^4.0.0",
+    "@remotion/renderer":"^4.0.0",
     "@types/bcryptjs":   "^2.4.6",
     "@types/node":       "^20.14.10",
     "@types/react":      "^18.3.3",
@@ -55,9 +69,11 @@
     "autoprefixer":      "^10.4.19",
     "jsdom":             "^25.0.0",
     "postcss":           "^8.4.39",
+    "remotion":          "^4.0.0",
     "tailwindcss":       "^3.4.6",
     "tsx":               "^4.16.2",
     "typescript":        "^5.5.3",
-    "vitest":            "^2.0.0"
+    "vitest":            "^2.0.0",
+    "webdriverio":       "^9.27.2"
   }
 }

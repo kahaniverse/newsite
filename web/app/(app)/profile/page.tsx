@@ -6,6 +6,7 @@ import { HeroBlock }   from '@/components/screens/HeroBlock';
 import { auth }        from '@/lib/auth/config';
 import { getAuthorById } from '@/lib/db/queries/authors';
 import { sampleAvatar } from '@/lib/sample-images';
+import { ProfileActions } from '@/components/auth/ProfileActions';
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -45,6 +46,7 @@ export default async function ProfilePage() {
             + New Universe
           </Link>
         </div>
+        <ProfileActions />
       </CompositeScreen>
     </NarrowShell>
   );

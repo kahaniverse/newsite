@@ -6,26 +6,23 @@ import { GENRE_LABELS } from '@/lib/types';
 import { usePanelStore } from '@/store';
 import { sampleCover } from '@/lib/sample-images';
 
-const FALLBACK: Universe[] = [
-  {
-    id: 'seed-1', slug: 'exodus-2120', name: 'Exodus 2120',
-    concept: 'The world is ending. Some of humanity escapes on generational starships bound for new planetary systems. These are the stories of those who did — and those left behind.',
-    coverImage: '/images/exodus.jpeg', era: 'Far Future', world: 'Sol System',
-    genres: ['scienceFiction'],
-    creator: { id: 'system', displayName: 'Kahaniverse' },
-    loveCount: 0, followCount: 0, viewCount: 0, storyCount: 0, createdAt: '',
-  },
-];
+interface Props {
+  initialUniverses?: Universe[];
+  /** Seed the detail panel with the visible universe. True on the home screen
+   *  (nothing else selects one); false on deep-linked routes where
+   *  <HydrateSelection> is the source of truth and must not be overridden. */
+  autoSeed?: boolean;
+}
 
-interface Props { initialUniverses?: Universe[] }
-
-export function HeroCarousel({ initialUniverses }: Props) {
-  const [universes, setUniverses] = useState<Universe[]>(initialUniverses?.length ? initialUniverses : FALLBACK);
+export function HeroCarousel({ initialUniverses, autoSeed = true }: Props) {
+  // No hardcoded fallback: with zero universes the carousel shows only the
+  // trailing "create your own universe" slide.
+  const [universes, setUniverses] = useState<Universe[]>(initialUniverses ?? []);
   const [current, setCurrent]     = useState(0);
   const [paused, setPaused]       = useState(false);
   const intervalRef               = useRef<ReturnType<typeof setInterval> | null>(null);
   const router                    = useRouter();
-  const { selectionKind, selectedUniverseSlug, selectUniverse } = usePanelStore();
+  const { selectionKind, selectedUniverseSlug, selectUniverse, setFocus } = usePanelStore();
 
   // One extra "create" slide trails the real universes, like the old app's
   // "Infinity / create your own universe" card at the end of the carousel.
@@ -51,11 +48,14 @@ export function HeroCarousel({ initialUniverses }: Props) {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [current, paused, goTo]);
 
-  // Seed the detail panel with the visible universe (skip the create slide).
+  // Keep the detail panel pointed at the universe currently on show, so panel 2
+  // always lists the highlighted universe's stories (skip the create slide).
+  // Only runs in browse mode — once focused, the carousel is unmounted.
   useEffect(() => {
+    if (!autoSeed) return;
     if (!u) return;
-    if (selectionKind === null) selectUniverse(u.slug, u.id);
-  }, [u?.slug, selectionKind, selectUniverse]); // eslint-disable-line
+    selectUniverse(u.slug, u.id);
+  }, [u?.slug, selectUniverse, autoSeed]); // eslint-disable-line
 
   const pick = useCallback((idx: number) => {
     const n = (idx + total) % total;
@@ -68,10 +68,13 @@ export function HeroCarousel({ initialUniverses }: Props) {
     if (isCreate) { router.push('/universes/new'); return; }
     if (!u) return;
     selectUniverse(u.slug, u.id);
+    // Narrow: stack the universe screen. Wide: take over panel 1 with its hero.
     if (typeof window !== 'undefined' && !window.matchMedia('(min-width: 768px)').matches) {
       router.push(`/universes/${u.slug}`);
+    } else {
+      setFocus('universe');
     }
-  }, [isCreate, u, selectUniverse, router]);
+  }, [isCreate, u, selectUniverse, setFocus, router]);
 
   const isActive = !isCreate && selectionKind === 'universe' && selectedUniverseSlug === u?.slug;
 
@@ -88,6 +91,7 @@ export function HeroCarousel({ initialUniverses }: Props) {
     <div onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} aria-live="polite">
       <div
         role="link"
+        data-testid="universe-hero"
         aria-label={isCreate ? 'Create a new universe' : `Open ${u?.name ?? 'universe'}`}
         tabIndex={0}
         onClick={() => { if (!swipe.current.moved) open(); }}
@@ -109,7 +113,10 @@ export function HeroCarousel({ initialUniverses }: Props) {
         ) : (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={u.coverImage || sampleCover(u.id)} alt={u.name} className="absolute inset-0 w-full h-full object-cover" loading="eager" />
+            {/* LCP element — eager + high fetch priority so the hero cover paints
+                first. Stays a plain <img> (covers may be Blob/picsum URLs not
+                whitelisted for next/image). */}
+            <img src={u.coverImage || sampleCover(u.id)} alt={u.name} className="absolute inset-0 w-full h-full object-cover" loading="eager" fetchPriority="high" decoding="async" />
             <div className="absolute inset-0 hero-scrim" />
             {u.genres.length > 0 && (
               <span className="absolute top-3 left-3 text-[11px] font-semibold uppercase tracking-wider text-white bg-brand/90 px-2.5 py-1 rounded-full">

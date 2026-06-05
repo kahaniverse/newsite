@@ -31,14 +31,26 @@ export async function getAuthorByEmail(email: string): Promise<(Author & { passw
   return { ...rowToAuthor(rows[0]), passwordHash: rows[0].password_hash as string | undefined };
 }
 
-export async function getAuthors({ page = 1, limit = 20 }: { page?: number; limit?: number }) {
+export async function getAuthors(
+  { page = 1, limit = 20, exclude }: { page?: number; limit?: number; exclude?: string | null },
+) {
   const offset = (page - 1) * limit;
-  const rows = await sql`
-    SELECT * FROM authors
-    ORDER BY follow_count DESC, created_at DESC
-    LIMIT ${limit} OFFSET ${offset}
-  `;
-  const countRows = await sql`SELECT COUNT(*) AS total FROM authors`;
+  // `exclude` drops a single author (the signed-in user) so they never appear in
+  // their own "authors to follow" lists.
+  const rows = exclude
+    ? await sql`
+        SELECT * FROM authors WHERE id <> ${exclude}
+        ORDER BY follow_count DESC, created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `
+    : await sql`
+        SELECT * FROM authors
+        ORDER BY follow_count DESC, created_at DESC
+        LIMIT ${limit} OFFSET ${offset}
+      `;
+  const countRows = exclude
+    ? await sql`SELECT COUNT(*) AS total FROM authors WHERE id <> ${exclude}`
+    : await sql`SELECT COUNT(*) AS total FROM authors`;
   return { data: rows.map(rowToAuthor), total: Number(countRows[0].total) };
 }
 

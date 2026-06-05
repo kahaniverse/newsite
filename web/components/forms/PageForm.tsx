@@ -95,6 +95,7 @@ export function PageForm({ editPageId }: Props = {}) {
 
           <textarea
             {...register('content')}
+            data-testid="page-content-input"
             placeholder="Add content for the page…"
             maxLength={10000}
             className={`${inputCls} h-64 resize-none font-serif leading-relaxed`}

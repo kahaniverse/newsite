@@ -4,6 +4,7 @@ import Twitter  from 'next-auth/providers/twitter';
 import Credentials from 'next-auth/providers/credentials';
 import { getAuthorByAuthId, createAuthor, verifyPassword } from '@/lib/db/queries/authors';
 import { verifyTurnstile } from '@/lib/auth/turnstile';
+import { DEMO_MODE, DEMO_AUTHOR_AUTH_ID } from '@/lib/auth/demo';
 import { z } from 'zod';
 
 // Custom Instagram OAuth2 provider
@@ -69,6 +70,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return { id: author.id, name: author.displayName, email: parsed.data.email, image: author.avatarImage };
       },
     }),
+
+    // Demo-only passwordless provider for unattended marketing screencasts.
+    // Present ONLY when DEMO_MODE is enabled (see lib/auth/demo.ts); absent in
+    // production, so it cannot be used to bypass real login.
+    ...(DEMO_MODE
+      ? [
+          Credentials({
+            id: 'demo',
+            name: 'Demo',
+            credentials: {},
+            async authorize() {
+              const author = await getAuthorByAuthId(DEMO_AUTHOR_AUTH_ID);
+              if (!author) return null;
+              return {
+                id: author.id,
+                name: author.displayName,
+                email: 'demo@kahaniverse.local',
+                image: author.avatarImage,
+              };
+            },
+          }),
+        ]
+      : []),
   ],
 
   callbacks: {
@@ -94,6 +118,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (user && account) {
         if (account.type === 'oauth') {
           token.authId = `${account.provider}:${account.providerAccountId}`;
+        } else if (account.provider === 'demo' && DEMO_MODE) {
+          token.authId = DEMO_AUTHOR_AUTH_ID;
         } else if (account.provider === 'credentials' && user.email) {
           token.authId = `email:${user.email.toLowerCase()}`;
         }

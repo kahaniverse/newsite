@@ -6,10 +6,32 @@ async function loadStories() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     stories.push(...data);
-    document.getElementById('universe-count').textContent = stories.length;
+    // #universe-count is optional in the markup — guard it so a missing element
+    // never aborts the carousel render (it sits in this try/catch).
+    const countEl = document.getElementById('universe-count');
+    if (countEl) countEl.textContent = stories.length;
+    renderDots(stories.length);
     updateBook(0, false);
   } catch (error) {
     console.error('Failed to load stories:', error);
+  }
+}
+
+// Build one pagination dot per loaded universe, so the dot count always matches
+// however many universes were seeded (the static markup only ships a few).
+function renderDots(n) {
+  const wrap = document.querySelector('.carousel-dots');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'carousel-dot' + (i === current ? ' active' : '');
+    dot.dataset.index = String(i);
+    dot.setAttribute('role', 'tab');
+    dot.setAttribute('aria-label', `Story ${i + 1}`);
+    dot.setAttribute('aria-selected', i === current ? 'true' : 'false');
+    dot.addEventListener('click', () => goTo(i));
+    wrap.appendChild(dot);
   }
 }
 
@@ -202,34 +224,37 @@ async function handleSignup(e) {
 document.addEventListener('DOMContentLoaded', () => {
   // TODO: Load universe from API — replace with real API call
 
-  // Universe count
-  document.getElementById('universe-count').textContent = stories.length;
-  
-  // Carousel buttons
-  document.getElementById('prevBtn').addEventListener('click', () => goTo(current - 1));
-  document.getElementById('nextBtn').addEventListener('click', () => goTo(current + 1));
+  // Universe count (optional element)
+  const countEl = document.getElementById('universe-count');
+  if (countEl) countEl.textContent = stories.length;
 
-  // Dot navigation
-  document.querySelectorAll('.carousel-dot').forEach(dot => {
-    dot.addEventListener('click', () => goTo(parseInt(dot.dataset.index)));
-  });
+  // Carousel buttons. Every lookup below is null-safe (`?.`): auth now lives in
+  // the React /login page, so the auth tabs/forms and social buttons are absent
+  // from this static landing markup. A hard `.addEventListener` on a missing
+  // element would throw and abort the rest of init — including resetTimer() — so
+  // guard each wiring and simply skip whatever isn't on the page.
+  document.getElementById('prevBtn')?.addEventListener('click', () => goTo(current - 1));
+  document.getElementById('nextBtn')?.addEventListener('click', () => goTo(current + 1));
+
+  // Dot navigation is wired in renderDots() once the universes load, so the
+  // dot count matches the seeded data rather than the static markup.
 
   // Touch swipe on book
   let touchStartX = 0;
   const book = document.getElementById('openBook');
-  book.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-  book.addEventListener('touchend', e => {
+  book?.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  book?.addEventListener('touchend', e => {
     const delta = touchStartX - e.changedTouches[0].clientX;
     if (Math.abs(delta) > 40) goTo(delta > 0 ? current + 1 : current - 1);
   });
 
-  // Auth tabs
-  document.getElementById('tabLogin').addEventListener('click', () => switchTab('login'));
-  document.getElementById('tabSignup').addEventListener('click', () => switchTab('signup'));
+  // Auth tabs (only present when the legacy auth markup is rendered)
+  document.getElementById('tabLogin')?.addEventListener('click', () => switchTab('login'));
+  document.getElementById('tabSignup')?.addEventListener('click', () => switchTab('signup'));
 
   // Auth forms
-  document.getElementById('loginForm').addEventListener('submit', handleLogin);
-  document.getElementById('signupForm').addEventListener('submit', handleSignup);
+  document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
+  document.getElementById('signupForm')?.addEventListener('submit', handleSignup);
 
   // Social auth
   document.querySelectorAll('.social-btn[data-provider]').forEach(btn => {
@@ -239,8 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Hamburger nav
   const hamburger = document.getElementById('hamburger');
   const navLinks = document.getElementById('navLinks');
-  hamburger.addEventListener('click', () => {
-    const open = navLinks.classList.toggle('open');
+  hamburger?.addEventListener('click', () => {
+    const open = navLinks?.classList.toggle('open');
     hamburger.setAttribute('aria-expanded', open);
   });
 

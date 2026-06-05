@@ -1,6 +1,7 @@
 import { sql } from '@/lib/db/client';
 import { Genre, Universe } from '@/lib/types';
 import { parsePgTextArray } from '@/lib/db/parse';
+import { getCache, setCache, TTL, CacheKeys } from '@/lib/redis/cache';
 
 function rowToUniverse(row: Record<string, unknown>): Universe {
   return {
@@ -43,10 +44,13 @@ export async function getUniverses({
   // "Featured" picks the most-viewed universes that have at least one story.
   const featuredFlag = featured ?? false;
   const genreParam = genre ?? null;
+  // Single round-trip: COUNT(*) OVER() returns the unpaginated total on every
+  // row, so we don't pay a second sequential query to Neon for the page count.
   const rows = await sql`
     SELECT u.*,
            a.display_name AS creator_name,
-           a.avatar_image AS creator_avatar
+           a.avatar_image AS creator_avatar,
+           COUNT(*) OVER() AS total_count
     FROM universes u
     JOIN authors a ON a.id = u.creator_id
     WHERE (${q ?? null}::text IS NULL OR u.name ILIKE ${'%' + (q ?? '') + '%'})
@@ -58,17 +62,46 @@ export async function getUniverses({
     LIMIT ${limit} OFFSET ${offset}
   `;
 
-  const countRows = await sql`
-    SELECT COUNT(*) AS total FROM universes u
-    WHERE (${q ?? null}::text IS NULL OR u.name ILIKE ${'%' + (q ?? '') + '%'})
-      AND (${genreParam}::text IS NULL OR ${genreParam}::genre = ANY(u.genres))
-      AND (${featuredFlag}::boolean = false OR u.story_count > 0)
-  `;
-
   return {
     data:  rows.map(rowToUniverse),
-    total: Number(countRows[0].total),
+    total: rows.length ? Number(rows[0].total_count) : 0,
   };
+}
+
+export interface UniversesPayload {
+  data: Universe[]; total: number; page: number; limit: number; hasMore: boolean;
+}
+
+/**
+ * Size of the canonical featured list. The home page, the browse carousel, and
+ * MoreUniverses all request exactly this many featured universes, and it's the
+ * only featured shape cached under `cache:universes:featured`. Client fetches
+ * that hard-code `&limit=5` must stay in sync with this value (otherwise they
+ * simply bypass the shared cache — still correct, just uncached).
+ */
+export const FEATURED_LIMIT = 5;
+
+/**
+ * Cache-aside accessor for THE featured universe list (page 1, {@link FEATURED_LIMIT}
+ * items, unfiltered) shown on the home/browse screen. Reads
+ * `cache:universes:featured` first (5 min TTL) and only hits Neon on a miss, so
+ * the dynamic home dashboard isn't re-querying the DB on every request. This is
+ * the single source of truth for that cache entry — the `/api/universes` route
+ * delegates its canonical featured request here rather than caching ad-hoc,
+ * which is why the key only ever holds one well-defined payload. Invalidate via
+ * the route's mutation handlers.
+ */
+export async function getFeaturedUniverses(): Promise<UniversesPayload> {
+  const key = CacheKeys.featuredUniverses();
+  const cached = await getCache<UniversesPayload>(key);
+  if (cached) return cached;
+
+  const result  = await getUniverses({ page: 1, limit: FEATURED_LIMIT, featured: true });
+  const payload: UniversesPayload = {
+    ...result, page: 1, limit: FEATURED_LIMIT, hasMore: result.total > FEATURED_LIMIT,
+  };
+  await setCache(key, payload, TTL.featuredUniverses);
+  return payload;
 }
 
 export async function getUniverseBySlug(slug: string): Promise<Universe | null> {

@@ -10,12 +10,13 @@ export function PageCard({ page, truncate = false, onClick }: Props) {
     <article
       className={`paper-card p-5 space-y-4 ${onClick ? 'cursor-pointer hover:shadow-[0_2px_10px_rgba(0,0,0,0.45)] transition-shadow' : ''}`}
       onClick={onClick}
+      data-testid="page-card"
       aria-label="Story page"
     >
       {page.illustration && (
         <CoverImage src={page.illustration} alt="Page illustration" aspect="16/9" />
       )}
-      <div className={`font-serif text-paper-ink leading-relaxed whitespace-pre-wrap ${truncate ? 'line-clamp-8' : ''}`}>
+      <div data-testid="page-content" className={`font-serif text-paper-ink leading-relaxed whitespace-pre-wrap ${truncate ? 'line-clamp-4' : ''}`}>
         {page.content}
       </div>
       <div className="pt-1">

@@ -1,92 +1,47 @@
 'use client';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CoverImage } from '@/components/ui/CoverImage';
-import { AvatarImage } from '@/components/ui/AvatarImage';
-import { AuthorByline } from '@/components/ui/AuthorByline';
-import { ReactionsStrip } from '@/components/ui/ReactionsStrip';
-import { RoundCarousel } from '@/components/lists/RoundCarousel';
 import { StoryList } from '@/components/lists/StoryList';
+import { PageList } from '@/components/lists/PageList';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { CardSkeleton, Skeleton } from '@/components/ui/Skeleton';
 import { usePanelStore } from '@/store';
-import type { Universe, Author, Character } from '@/lib/types';
-import { GENRE_LABELS } from '@/lib/types';
+import { useUniverse, useAuthor } from '@/hooks/useSelection';
+import { useInfiniteBeginnings } from '@/hooks/useInfiniteBeginnings';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
-interface Props { initialUniverse?: Universe }
+// Panel 2 — the body of the current selection, never its hero. The hero always
+// lives in panel 1 (the browse carousel for the highlighted universe, or the
+// focused-takeover hero once drilled in), so this panel shows only what's
+// "inside" the selection: a universe's / author's stories, or a story's pages.
+export function EntityDetailPanel() {
+  const { selectionKind, selectedAuthorId, focusKind } = usePanelStore();
 
-export function EntityDetailPanel({ initialUniverse }: Props) {
-  const { selectionKind, selectedAuthorId } = usePanelStore();
-
-  if (selectionKind === 'author' && selectedAuthorId) {
-    return <AuthorDetail authorId={selectedAuthorId} />;
-  }
-  return <UniverseDetail initialUniverse={initialUniverse} />;
+  if (focusKind === 'story') return <StoryBody />;
+  if (selectionKind === 'author' && selectedAuthorId) return <AuthorBody authorId={selectedAuthorId} />;
+  return <UniverseBody />;
 }
 
-// ── Universe view ───────────────────────────────────────────────────
-function UniverseDetail({ initialUniverse }: { initialUniverse?: Universe }) {
-  const { selectedUniverseSlug, selectStory } = usePanelStore();
-  const slug = selectedUniverseSlug ?? initialUniverse?.slug;
+// ── Universe — just its latest stories ──────────────────────────────
+function UniverseBody() {
+  const { selectedUniverseSlug, selectStory, setFocus } = usePanelStore();
+  const { data: universe, isLoading } = useUniverse(selectedUniverseSlug);
 
-  const [universe, setUniverse]     = useState<Universe | null>(initialUniverse ?? null);
-  const [characters]                = useState<Character[]>([]);
-  const [loading, setLoading]       = useState(false);
+  // Picking a story straight from the browse carousel's story list should lock
+  // panel 1 onto this universe's hero (the story already belongs to it) rather
+  // than leave the carousel cycling. The chosen story then drives panel 3.
+  function handleSelect(storyId: string) {
+    selectStory(storyId);
+    setFocus('universe');
+  }
 
-  useEffect(() => {
-    if (!slug) return;
-    if (universe?.slug === slug) return;
-    setLoading(true);
-    fetch(`/api/universes/${slug}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setUniverse(d); })
-      .finally(() => setLoading(false));
-  }, [slug]); // eslint-disable-line
-
-  if (!slug && !universe) return <FeaturedCarouselPlaceholder />;
-
-  if (loading) return <DetailSkeleton />;
+  if (!selectedUniverseSlug && !universe) return <FeaturedCarouselPlaceholder />;
+  if (isLoading && !universe) return <DetailSkeleton />;
   if (!universe) return null;
 
   return (
     <div className="flex flex-col gap-5 pb-24 px-1 panel-enter">
-      <section aria-label={`Universe: ${universe.name}`} className="paper-card overflow-hidden">
-        <CoverImage src={universe.coverImage} alt={universe.name} aspect="16/9" priority seed={universe.id} />
-        <div className="p-4 space-y-3">
-          <div className="flex flex-wrap gap-1.5">
-            {universe.genres.map(g => (
-              <span key={g} className="text-xs bg-accent-deep/10 text-accent-deep px-2 py-0.5 rounded-full">
-                {GENRE_LABELS[g]}
-              </span>
-            ))}
-          </div>
-          <h2 className="font-serif text-2xl font-bold text-paper-ink">{universe.name}</h2>
-          <p className="text-sm text-paper-muted leading-relaxed">{universe.concept}</p>
-          <div className="flex flex-wrap gap-3 text-xs text-paper-muted">
-            {universe.era   && <span>📅 {universe.era}</span>}
-            {universe.world && <span>🌍 {universe.world}</span>}
-            <span>📖 {universe.storyCount} stories</span>
-          </div>
-          <div className="flex items-center justify-between pt-2 border-t border-paper-border">
-            <AuthorByline author={universe.creator} size="md" tone="ink" />
-            <ReactionsStrip
-              targetId={universe.id}
-              targetType="universe"
-              loveCount={universe.loveCount}
-              followCount={universe.followCount}
-              viewCount={universe.viewCount}
-              shareUrl={`${process.env.NEXT_PUBLIC_APP_URL}/universes/${universe.slug}`}
-            />
-          </div>
-        </div>
-      </section>
-
-      <ErrorBoundary>
-        <RoundCarousel characters={characters} />
-      </ErrorBoundary>
-
-      <section aria-label="Stories in this universe">
+      <section aria-label={`Stories in ${universe.name}`}>
         <SectionHeader
           title="Latest Stories"
           action={
@@ -100,59 +55,23 @@ function UniverseDetail({ initialUniverse }: { initialUniverse?: Universe }) {
           }
         />
         <ErrorBoundary>
-          <StoryList
-            universeId={universe.id}
-            onSelect={s => selectStory(s.id)}
-          />
+          <StoryList universeId={universe.id} onSelect={s => handleSelect(s.id)} />
         </ErrorBoundary>
       </section>
     </div>
   );
 }
 
-// ── Author view ─────────────────────────────────────────────────────
-function AuthorDetail({ authorId }: { authorId: string }) {
+// ── Author — just their authored stories ────────────────────────────
+function AuthorBody({ authorId }: { authorId: string }) {
   const { selectStory } = usePanelStore();
-  const [author, setAuthor]   = useState<Author | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: author, isLoading } = useAuthor(authorId);
 
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/authors/${authorId}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d) setAuthor(d); })
-      .finally(() => setLoading(false));
-  }, [authorId]);
-
-  if (loading) return <DetailSkeleton />;
-  if (!author) return (
-    <div className="p-6 text-center text-text-muted text-sm">Author not found.</div>
-  );
+  if (isLoading && !author) return <DetailSkeleton />;
+  if (!author) return <div className="p-6 text-center text-text-muted text-sm">Author not found.</div>;
 
   return (
     <div className="flex flex-col gap-5 pb-24 px-1 panel-enter">
-      <section aria-label={`Author: ${author.displayName}`} className="paper-card p-4 flex items-start gap-4">
-        <AvatarImage src={author.avatarImage} alt={author.displayName} size={72} />
-        <div className="flex-1 min-w-0">
-          <h2 className="font-serif text-2xl font-bold text-paper-ink">{author.displayName}</h2>
-          {author.bio && (
-            <p className="text-sm text-paper-muted mt-1 leading-relaxed">{author.bio}</p>
-          )}
-          <div className="flex gap-4 mt-2 text-xs text-paper-muted">
-            <span>{author.followCount.toLocaleString()} followers</span>
-            <span>{author.loveCount.toLocaleString()} loves</span>
-          </div>
-          <div className="mt-3">
-            <ReactionsStrip
-              targetId={author.id}
-              targetType="author"
-              loveCount={author.loveCount}
-              followCount={author.followCount}
-            />
-          </div>
-        </div>
-      </section>
-
       <section aria-label={`Stories by ${author.displayName}`}>
         <SectionHeader title="Stories Authored" />
         <ErrorBoundary>
@@ -163,13 +82,46 @@ function AuthorDetail({ authorId }: { authorId: string }) {
   );
 }
 
+// ── Story — its beginnings to dive into ─────────────────────────────
+function StoryBody() {
+  const { selectedStoryId, selectPage } = usePanelStore();
+  // Root + its alternate-beginning branches, paged in on scroll instead of
+  // pulling the whole page tree up front.
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useInfiniteBeginnings(selectedStoryId);
+  const sentinel = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
+
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-4">
+        <CardSkeleton />
+        <CardSkeleton />
+      </div>
+    );
+  }
+
+  const root       = data?.pages[0]?.root ?? null;
+  const children   = data?.pages.flatMap(p => p.data) ?? [];
+  const beginnings = root ? [root, ...children] : [];
+
+  return (
+    <div className="flex flex-col gap-5 pb-24 px-1 panel-enter">
+      <section aria-label="Story beginnings">
+        <SectionHeader title="Beginnings" />
+        {beginnings.length > 0
+          ? <PageList pages={beginnings} onSelect={p => selectPage(p.id)} />
+          : <p className="text-sm text-text-muted px-1">No pages yet — be the first to begin this story.</p>}
+        <div ref={sentinel} className="h-4" aria-hidden />
+        {isFetchingNextPage && <CardSkeleton />}
+      </section>
+    </div>
+  );
+}
+
 function DetailSkeleton() {
   return (
     <div className="p-4 space-y-4">
-      <Skeleton className="w-full h-48" />
       <Skeleton className="w-2/3 h-6" />
-      <Skeleton className="w-full h-4" />
-      <Skeleton className="w-full h-4" />
       <CardSkeleton />
       <CardSkeleton />
     </div>

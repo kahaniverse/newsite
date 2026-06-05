@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { NarrowShell } from '@/components/shell/NarrowShell';
+import { HorizontalBrowse } from '@/components/shell/HorizontalBrowse';
 import { PageCard }    from '@/components/cards/PageCard';
 import { PageList }    from '@/components/lists/PageList';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -35,19 +36,32 @@ export default async function PageDetailPage({ params }: Props) {
     }] : []),
   ];
 
+  const hydrate = (
+    <HydrateSelection
+      storyId={page.storyId}
+      pageId={page.id}
+      detailMeta={{
+        kind:     'page',
+        pageId:   page.id,
+        storyId:  page.storyId,
+        parentId: page.parentId,
+        authorId: page.author.id,
+      }}
+    />
+  );
+
   return (
-    <NarrowShell title={story?.title ?? 'Story Page'} subtitle="Page">
-      <HydrateSelection
-        storyId={page.storyId}
-        pageId={page.id}
-        detailMeta={{
-          kind:     'page',
-          pageId:   page.id,
-          storyId:  page.storyId,
-          parentId: page.parentId,
-          authorId: page.author.id,
-        }}
-      />
+    <>
+      {hydrate}
+
+      {/* Horizontal cascading panels (tablet + desktop) */}
+      <div className="hidden md:block">
+        <HorizontalBrowse />
+      </div>
+
+      {/* Narrow stacked layout (mobile) */}
+      <div className="block md:hidden">
+      <NarrowShell title={story?.title ?? 'Story Page'} subtitle="Page">
       <div className="flex flex-col gap-5 py-4">
         <PageCard page={page} />
         {page.children.length > 0 && (
@@ -58,6 +72,8 @@ export default async function PageDetailPage({ params }: Props) {
         )}
       </div>
       {fabActions.length > 0 && <SpeedDialFab actions={fabActions} />}
-    </NarrowShell>
+      </NarrowShell>
+      </div>
+    </>
   );
 }

@@ -9,7 +9,19 @@
       "Bash(cd /c/workspace/kahaniverse/web && grep -rn \"nav-translucent\\\\|<nav\\\\|<header\" components/shell app/\\\\\\(app\\\\\\) 2>/dev/null | grep -iv \"navigation\\\\b\" | head -40)",
       "Read(//c/c/workspace/kahaniverse/web/components/**)",
       "Bash(cd /c/workspace/kahaniverse/web && grep -rn \"overflow-y-auto h-full\\\\|overflow-y-auto\" components/panels components/screens app/\\\\\\(app\\\\\\) 2>/dev/null | head; echo \"---shells \\(should be the only scrollers\\)---\"; grep -rn \"overflow-y-auto\" components/shell 2>/dev/null)",
-      "Read(//c/c/workspace/kahaniverse/web/app/**)"
+      "Read(//c/c/workspace/kahaniverse/web/app/**)",
+      "Bash(ls -la /c/myDemo 2>/dev/null || echo \"NOT FOUND via bash\")",
+      "Read(//c//**)",
+      "Bash(grep -rhoiE \"\\(#[0-9a-f]{3,6}|hsl\\\\\\([^\\)]*\\\\\\)|--[a-z-]+:\\)\" web/styles)",
+      "Bash(ls -la .env*)",
+      "Bash(ls node_modules)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3001/)",
+      "Bash(curl -s \"http://localhost:3001/api/universes?limit=3\")",
+      "Bash(curl -s \"http://localhost:3001/?__peek=1\" -o /tmp/home.html -w \"HTTP %{http_code} size=%{size_download}\\\\n\")",
+      "Bash(node -e \"console.log\\(require\\('@playwright/test/package.json'\\).version\\)\")",
+      "Bash(node scripts/peek.mjs)",
+      "Bash(echo \"=== exit: $? ===\")",
+      "Bash(curl -s -o /dev/null -w \"server: %{http_code}\\\\n\" \"http://localhost:3001/api/universes?limit=1\")"
     ]
   }
 }

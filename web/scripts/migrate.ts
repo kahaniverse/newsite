@@ -1,5 +1,5 @@
 import './_load-env';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { neon } from '@neondatabase/serverless';
 import { configureNeonForLocalDev } from '../lib/db/configure-neon';
@@ -62,22 +62,28 @@ async function migrate() {
 
   configureNeonForLocalDev(url);
   const sql  = neon(url);
-  const file = join(process.cwd(), 'lib/db/migrations/001_initial.sql');
-  const ddl  = readFileSync(file, 'utf8');
+  const dir  = join(process.cwd(), 'lib/db/migrations');
 
-  console.log('Running migration…');
-  const stmts = splitStatements(ddl);
+  // Apply every NNN_*.sql migration in lexical order. Stateless: relies on
+  // idempotent DDL (CREATE … / ADD COLUMN IF NOT EXISTS) plus the
+  // "already exists" skip below, so re-running is safe.
+  const files = readdirSync(dir).filter(f => /^\d+.*\.sql$/.test(f)).sort();
+  console.log(`Running ${files.length} migration(s)…`);
 
-  for (const stmt of stmts) {
-    try {
-      await sql(stmt);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      if (msg.includes('already exists')) {
-        console.log(`  skip (already exists): ${stmt.slice(0, 60)}…`);
-        continue;
+  for (const file of files) {
+    console.log(`  ${file}`);
+    const ddl = readFileSync(join(dir, file), 'utf8');
+    for (const stmt of splitStatements(ddl)) {
+      try {
+        await sql(stmt);
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.includes('already exists')) {
+          console.log(`    skip (already exists): ${stmt.slice(0, 60)}…`);
+          continue;
+        }
+        throw e;
       }
-      throw e;
     }
   }
   console.log('Migration complete.');

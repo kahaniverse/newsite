@@ -152,7 +152,7 @@ export function Actions({ onCancel, label, busy }: { onCancel: () => void; label
       >
         Revert
       </button>
-      <button type="submit" disabled={busy} className="flex-1 btn-pill btn-pill-primary !text-sm disabled:opacity-60">
+      <button type="submit" disabled={busy} data-testid="form-submit" className="flex-1 btn-pill btn-pill-primary !text-sm disabled:opacity-60">
         {label}
       </button>
     </div>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound }    from 'next/navigation';
 import { NarrowShell } from '@/components/shell/NarrowShell';
+import { HorizontalBrowse } from '@/components/shell/HorizontalBrowse';
 import { CompositeScreen } from '@/components/screens/CompositeScreen';
 import { HeroBlock }   from '@/components/screens/HeroBlock';
 import { PageList }    from '@/components/lists/PageList';
@@ -34,9 +35,23 @@ export default async function StoryPage({ params }: Props) {
   const author = story.contributors[0]?.author;
 
   return (
-    <NarrowShell title={story.title} subtitle={story.universe.name}>
-      <HydrateSelection storyId={story.id} detailMeta={{ kind: 'story', storyId: story.id }} />
+    <>
+      {/* Pre-select this story so the horizontal panels cascade to it. */}
+      <HydrateSelection
+        universeSlug={story.universe.slug}
+        universeId={story.universe.id}
+        storyId={story.id}
+        detailMeta={{ kind: 'story', storyId: story.id }}
+      />
 
+      {/* Horizontal cascading panels (tablet + desktop) */}
+      <div className="hidden md:block">
+        <HorizontalBrowse />
+      </div>
+
+      {/* Narrow stacked layout (mobile) */}
+      <div className="block md:hidden">
+      <NarrowShell title={story.title} subtitle={story.universe.name}>
       <CompositeScreen
         hero={
           <HeroBlock
@@ -76,7 +91,10 @@ export default async function StoryPage({ params }: Props) {
         href={`/pages/new?storyId=${story.id}&parentId=${story.id}&intent=next`}
         label="Add a page"
         icon="edit"
+        testId="story-add-page"
       />
-    </NarrowShell>
+      </NarrowShell>
+      </div>
+    </>
   );
 }

@@ -39,6 +39,7 @@ export function StoryCard({ story, onClick, compact = false, selected = false, i
       role="button"
       tabIndex={0}
       onKeyDown={e => e.key === 'Enter' && onClick?.()}
+      data-testid="story-card"
       aria-label={`Story: ${story.title}`}
       aria-pressed={selected}
     >

@@ -51,8 +51,16 @@ export default auth((req) => {
 });
 
 export const config = {
+  // Only run the auth middleware where it actually does something: the home
+  // route (landing rewrite for guests), the protected pages it guards, and the
+  // API surface (mutation gating). Public content pages — universes, stories,
+  // authors, discover, etc. — no longer pay a session decode on every request.
   matcher: [
-    // page routes
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    '/',
+    '/profile/:path*',
+    '/universes/new',
+    '/stories/new',
+    '/pages/new',
+    '/api/:path*',
   ],
 };

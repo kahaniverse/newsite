@@ -1,0 +1,65 @@
+{
+  "$comment": "Shape consumed by seed-from-json.ts. authId values link authors to the content they create/write. Genres must be from the enum: fantasy, scienceFiction, romance, thriller, horror, mystery, adventure, historical, literary, other. Story status: draft, published, completed, abandoned. Omit any optional field to take its default. coverImage/illustration are paths under public/ (e.g. /images/foo.jpeg) or full URLs.",
+  "authors": [
+    {
+      "authId": "seed:meera-rao",
+      "displayName": "Meera Rao",
+      "bio": "Sci-fi novelist obsessed with generation ships and the people who never see the destination.",
+      "avatarImage": "https://i.pravatar.cc/240?u=meera",
+      "followCount": 8420,
+      "loveCount": 19200
+    }
+  ],
+  "universes": [
+    {
+      "slug": "exodus-2120",
+      "name": "Exodus 2120",
+      "concept": "The world is ending. Some of humanity escapes on generational starships bound for new planetary systems. These are the stories of those who did — and those left behind.",
+      "coverImage": "/images/exodus-2120.jpeg",
+      "era": "Far Future",
+      "world": "Sol System & Beyond",
+      "genres": ["scienceFiction"],
+      "creatorAuthId": "seed:meera-rao",
+      "loveCount": 1240,
+      "followCount": 880,
+      "viewCount": 15300,
+      "characters": [
+        {
+          "name": "Captain Sena Okoro",
+          "image": "/images/exodus-2120-sena.jpeg",
+          "description": "Third-generation commander of the Arka, born in flight, sworn to a destination she will never see.",
+          "creatorAuthId": "seed:meera-rao"
+        }
+      ],
+      "stories": [
+        {
+          "title": "The Last Sunrise",
+          "synopsis": "A family's final hours on Earth before the fleet departs.",
+          "coverImage": "/images/exodus-2120-last-sunrise.jpeg",
+          "genreTags": ["scienceFiction", "literary"],
+          "status": "published",
+          "authorAuthId": "seed:meera-rao",
+          "loveCount": 430,
+          "viewCount": 5200,
+          "rootPage": {
+            "content": "The evacuation klaxon had been sounding for three days, and Amara had stopped hearing it. She stood at the kitchen window with a cup of tea gone cold, watching the last light her family would ever see break over the dead orchard …",
+            "illustration": "/images/exodus-2120-last-sunrise-p1.jpeg",
+            "authorAuthId": "seed:meera-rao",
+            "children": [
+              {
+                "content": "She decided to wake the children. If these were the final hours, they would spend them together, at the table, the way every ordinary morning had begun …",
+                "authorAuthId": "seed:meera-rao",
+                "children": []
+              },
+              {
+                "content": "She let them sleep. Some mercies are small. She would carry the last sunrise alone, so that they could carry one more dream …",
+                "authorAuthId": "seed:meera-rao",
+                "children": []
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

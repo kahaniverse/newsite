@@ -62,6 +62,61 @@ export async function getPagesByStory(storyId: string): Promise<Page[]> {
   }
 }
 
+export interface BeginningsPayload {
+  root:    Page | null;
+  data:    Page[];   // root's direct children (the alternate beginnings), paginated
+  total:   number;
+  page:    number;
+  limit:   number;
+  hasMore: boolean;
+}
+
+/**
+ * Paginated "beginnings" of a story: its root page plus a page-by-page slice of
+ * the root's direct children (the alternate opening branches). Lets the story
+ * detail panel infinite-scroll the beginnings instead of fetching the entire
+ * page tree up front. `root` is repeated on every page so the caller can render
+ * it as the list header regardless of which slice loaded first.
+ */
+export async function getStoryBeginnings(
+  storyId: string,
+  { page = 1, limit = 8 }: { page?: number; limit?: number } = {},
+): Promise<BeginningsPayload> {
+  const empty: BeginningsPayload = { root: null, data: [], total: 0, page, limit, hasMore: false };
+  if (!isUuid(storyId)) return empty;
+  try {
+    const rootRows = await sql`
+      SELECT p.*, a.display_name, a.avatar_image
+      FROM pages p JOIN authors a ON a.id = p.author_id
+      WHERE p.story_id = ${storyId} AND p.parent_id IS NULL
+      LIMIT 1
+    `;
+    if (!rootRows.length) return empty;
+    const root = rowToPage(rootRows[0]);
+
+    const offset = (page - 1) * limit;
+    const childRows = await sql`
+      SELECT p.*, a.display_name, a.avatar_image, COUNT(*) OVER() AS total_count
+      FROM pages p JOIN authors a ON a.id = p.author_id
+      WHERE p.parent_id = ${root.id}
+      ORDER BY p.created_at ASC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+    const total = childRows.length ? Number(childRows[0].total_count) : 0;
+    return {
+      root,
+      data:    childRows.map(r => rowToPage(r)),
+      total,
+      page,
+      limit,
+      hasMore: total > page * limit,
+    };
+  } catch (e) {
+    console.error('getStoryBeginnings failed', e);
+    return empty;
+  }
+}
+
 export async function createPage(data: {
   storyId:      string;
   parentId:     string | null;

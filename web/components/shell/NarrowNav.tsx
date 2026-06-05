@@ -6,6 +6,7 @@ import type { Session } from 'next-auth';
 import { usePathname, useRouter } from 'next/navigation';
 import { usePanelStore } from '@/store';
 import { CreateSheet } from '@/components/shell/CreateSheet';
+import { AvatarImage } from '@/components/ui/AvatarImage';
 
 interface Props {
   session:   Session | null;
@@ -22,7 +23,7 @@ export function NarrowNav({ session, title, subtitle }: Props) {
   const pathname = usePathname() ?? '/';
   const router   = useRouter();
   const { selectedUniverseId, selectedStoryId } = usePanelStore();
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetOpen, setSheetOpen]   = useState(false);
 
   const isRoot = ROOT_PATHS.has(pathname);
 
@@ -34,7 +35,13 @@ export function NarrowNav({ session, title, subtitle }: Props) {
 
   return (
     <>
-      <TopHeader isRoot={isRoot} session={session} title={title} subtitle={subtitle} onBack={() => router.back()} />
+      <TopHeader
+        isRoot={isRoot}
+        session={session}
+        title={title}
+        subtitle={subtitle}
+        onBack={() => router.back()}
+      />
       <BottomNav onCreate={() => setSheetOpen(true)} />
       <CreateSheet
         open={sheetOpen}
@@ -82,11 +89,19 @@ function TopHeader({ isRoot, session, title, subtitle, onBack }: {
         </div>
       )}
 
-      {/* Right: discover + avatar/sign-in */}
+      {/* Right: discover + avatar (opens drawer) / sign-in */}
       <div className="flex items-center gap-3 z-10">
         <Link href="/discover" className="text-lg text-text-muted hover:text-accent transition-colors" aria-label="Discover">🔍</Link>
         {session
-          ? <Link href="/profile" className="text-lg text-text-muted hover:text-accent transition-colors" aria-label="Profile">🧑</Link>
+          ? (
+            <Link
+              href="/profile"
+              aria-label="Profile"
+              className="rounded-full ring-1 ring-transparent hover:ring-border transition"
+            >
+              <AvatarImage src={session.user?.image ?? undefined} alt={session.user?.name ?? 'Account'} size={28} />
+            </Link>
+          )
           : <Link href="/login"   className="text-xs text-white font-medium bg-brand px-3 py-1.5 rounded-full hover:brightness-110 transition" >Sign in</Link>
         }
       </div>

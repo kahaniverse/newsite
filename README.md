@@ -361,10 +361,12 @@ Headings: `Georgia, 'Times New Roman', serif` · Body: system sans-serif · Card
 ## NPM Scripts
 
 ```bash
-npm run dev          # local dev server
-npm run build        # production build
-npm run db:migrate   # apply migrations (uses DATABASE_URL_UNPOOLED)
-npm run db:seed      # insert seed data (idempotent)
+npm run dev             # local dev server
+npm run build           # production build
+npm run db:migrate      # apply all migrations in order (uses DATABASE_URL_UNPOOLED)
+npm run db:seed         # insert seed data (idempotent)
+npm run db:cleanup-seed # remove dummy/seed-authored content (dry-run by default)
+npm run db:reset        # drop + recreate schema, re-apply migrations (local DB only)
 ```
 
 ---
@@ -377,6 +379,50 @@ npm run db:seed      # insert seed data (idempotent)
 - 3 Universes: **Exodus 2120** (scienceFiction), **The Ember Courts** (fantasy), **Deva Protocol** (scienceFiction)
 - 2 Stories per universe, 1 root Page per story
 - These match the static `index.html` carousel content for seamless conversion
+
+---
+
+## Seed Cleanup
+
+Automated / dummy authors generate starter content so the app never looks empty. A
+dummy author may also drop a story into a **real user's** universe to drive
+engagement. All such accounts are tagged in the database so their content can be
+swept later without touching real users' work.
+
+**The flag.** `authors.is_seed BOOLEAN NOT NULL DEFAULT false` (migration
+`002_author_is_seed.sql`). Real (human) authors stay `false`; seeded/automated
+accounts are `true`. It is internal-only — `rowToAuthor` never maps it, so it is
+never exposed in any API response. The seed scripts set it, and the migration
+backfills existing `system:%` / `seed:%` accounts.
+
+**The cleaner.** `npm run db:cleanup-seed` removes:
+
+1. **Whole universes** whose creator is a seed author → deleted (cascades to
+   stories, pages, characters, reactions).
+2. **Seed-authored stories inside a real user's universe** → deleted per-universe,
+   so a dummy "engagement" story is removed once the universe stands on its own. A
+   story's author is its `story_contributors` row with `role = 'creator'`.
+
+It is a **dry run by default** — it prints what it would delete and changes
+nothing until you pass `--apply`.
+
+| Flag | Effect |
+|------|--------|
+| `--apply` | Actually delete (otherwise dry run). |
+| `--universe <slug>` | Limit everything to one universe. |
+| `--min-real-stories <n>` | Only clean a real universe once it has ≥ n stories by real authors. Default `1`; `0` = always. |
+| `--force` | Also delete a seed story that a real author has branched onto (drops those real pages). Default: such stories are **skipped**. |
+| `--purge-authors` | Afterwards, delete seed authors no longer referenced by any universe/page/character (never the system author). |
+
+```bash
+npm run db:cleanup-seed                                   # dry run, everything
+npm run db:cleanup-seed -- --universe my-world            # preview one universe
+npm run db:cleanup-seed -- --universe my-world --apply    # clean one universe
+```
+
+> Run `npm run db:migrate` first — the cleaner aborts if `is_seed` is missing.
+> To wipe **everything** and start completely fresh on a local DB, use
+> `npm run db:reset` (refuses to run against a non-local host).
 
 ---
 

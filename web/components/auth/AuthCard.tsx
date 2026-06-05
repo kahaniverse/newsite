@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
@@ -46,7 +46,9 @@ export function AuthCard({ universeCount, initialTab = 'login' }: Props) {
           aria-labelledby="tabLogin"
           className={tab === 'login' ? '' : 'hidden'}
         >
-          <LoginForm />
+          <Suspense fallback={null}>
+            <LoginForm />
+          </Suspense>
           <p className="auth-footer-text">
             <Link href="/forgot-password">Forgot password?</Link>
           </p>

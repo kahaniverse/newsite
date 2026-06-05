@@ -5,7 +5,7 @@
 
 import './_load-env';
 import { neon } from '@neondatabase/serverless';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { configureNeonForLocalDev } from '../lib/db/configure-neon';
 import { splitStatements } from './migrate';
@@ -27,10 +27,14 @@ async function reset() {
   await sql('DROP SCHEMA IF EXISTS public CASCADE');
   await sql('CREATE SCHEMA public');
 
-  console.log('Applying 001_initial.sql…');
-  const ddl = readFileSync(join(process.cwd(), 'lib/db/migrations/001_initial.sql'), 'utf8');
-  for (const stmt of splitStatements(ddl)) {
-    await sql(stmt);
+  const dir = join(process.cwd(), 'lib/db/migrations');
+  const files = readdirSync(dir).filter(f => /^\d+.*\.sql$/.test(f)).sort();
+  for (const file of files) {
+    console.log(`Applying ${file}…`);
+    const ddl = readFileSync(join(dir, file), 'utf8');
+    for (const stmt of splitStatements(ddl)) {
+      await sql(stmt);
+    }
   }
 
   console.log('Reset complete.');

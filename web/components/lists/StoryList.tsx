@@ -1,9 +1,9 @@
 'use client';
-import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { StoryCard } from '@/components/cards/StoryCard';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 import { useInfiniteStories } from '@/hooks/useInfiniteStories';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { usePanelStore } from '@/store';
 import type { Story } from '@/lib/types';
 
@@ -23,18 +23,7 @@ export function StoryList({ universeId, status = 'published', q, onSelect, initi
 
   const selectedStoryId = usePanelStore(s => s.selectedStoryId);
 
-  const sentinel = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = sentinel.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      entries => { if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage(); },
-      { threshold: 0.1 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  const sentinel = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
 
   const stories = data?.pages.flatMap(p => p.data) ?? initialData ?? [];
 

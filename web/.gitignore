@@ -8,6 +8,9 @@ dist/
 .DS_Store
 Thumbs.db
 
+# TypeScript incremental build cache — generated, not source
+*.tsbuildinfo
+
 # Local dev upload stub — anything inside is real user content
 public/uploads/*
 !public/uploads/.gitkeep

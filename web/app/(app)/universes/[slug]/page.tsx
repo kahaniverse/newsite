@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { NarrowShell }    from '@/components/shell/NarrowShell';
+import { HorizontalBrowse } from '@/components/shell/HorizontalBrowse';
 import { CompositeScreen } from '@/components/screens/CompositeScreen';
 import { HeroBlock }      from '@/components/screens/HeroBlock';
 import { StoryList }      from '@/components/lists/StoryList';
@@ -27,10 +28,18 @@ export default async function UniversePage({ params }: Props) {
   if (!universe) notFound();
 
   return (
-    // Mobile route; on wide screens the universe renders in the home 3-panel.
-    <div className="block lg:hidden">
+    <>
+      {/* Pre-select this universe so the horizontal panels reflect the route. */}
+      <HydrateSelection universeSlug={universe.slug} universeId={universe.id} />
+
+      {/* Horizontal cascading panels (tablet + desktop) */}
+      <div className="hidden md:block">
+        <HorizontalBrowse />
+      </div>
+
+      {/* Narrow stacked layout (mobile) */}
+      <div className="block md:hidden">
       <NarrowShell title={universe.name}>
-        <HydrateSelection universeSlug={universe.slug} universeId={universe.id} />
         <CompositeScreen
           hero={
             <HeroBlock
@@ -75,6 +84,7 @@ export default async function UniversePage({ params }: Props) {
         />
         <Fab href={`/stories/new?universeId=${universe.id}`} label="Write a story" icon="edit" />
       </NarrowShell>
-    </div>
+      </div>
+    </>
   );
 }

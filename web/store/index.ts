@@ -89,6 +89,12 @@ export const useToastStore = create<ToastState>((set) => ({
 // story/page nest under a universe selection.
 type SelectionKind = 'universe' | 'author' | null;
 
+// Which entity the horizontal layout has "drilled into": its hero takes over
+// panel 1 and the detail panel drops its own hero (focused-takeover cascade).
+// Null = browse mode (panel 1 shows the browse list). Horizontal view only —
+// the narrow shell ignores this entirely.
+export type FocusKind = 'universe' | 'author' | 'story' | null;
+
 // What the narrow shell's stacked detail view is currently showing.
 // Populated by detail screens so the bottom nav can offer the right
 // action (Extend Story / Add Next / Alter This / Edit).
@@ -108,6 +114,13 @@ interface PanelState {
   selectedStoryId:      string | null;
   selectedPageId:       string | null;
   detailMeta:           DetailMeta | null;
+  // Horizontal focused-takeover state (see FocusKind). `focused` toggles panel 1
+  // between the browse list and the selected entity's hero. `focusKind` says
+  // which entity that hero is. Selection actions are deliberately focus-agnostic;
+  // takeover is driven separately via setFocus/clearFocus so passive seeding
+  // (the home carousel) never hijacks panel 1.
+  focused:              boolean;
+  focusKind:            FocusKind;
   selectUniverse:  (slug: string, id?: string | null) => void;
   selectAuthor:    (id: string)   => void;
   selectStory:     (id: string)   => void;
@@ -115,6 +128,8 @@ interface PanelState {
   clearStory:      () => void;
   clearPage:       () => void;
   setDetailMeta:   (meta: DetailMeta | null) => void;
+  setFocus:        (kind: NonNullable<FocusKind>) => void;
+  clearFocus:      () => void;
 }
 
 export const usePanelStore = create<PanelState>((set) => ({
@@ -125,6 +140,8 @@ export const usePanelStore = create<PanelState>((set) => ({
   selectedStoryId:      null,
   selectedPageId:       null,
   detailMeta:           null,
+  focused:              false,
+  focusKind:            null,
   selectUniverse: (slug, id = null) => set({
     selectionKind:        'universe',
     selectedUniverseSlug: slug,
@@ -146,4 +163,9 @@ export const usePanelStore = create<PanelState>((set) => ({
   clearStory:     ()     => set({ selectedStoryId: null, selectedPageId: null }),
   clearPage:      ()     => set({ selectedPageId: null }),
   setDetailMeta:  (meta) => set({ detailMeta: meta }),
+  setFocus:       (kind) => set({ focused: true, focusKind: kind }),
+  // "Browse" back / leaving for a browse-root route: drop the takeover AND the
+  // story/page drill, so the narrow (route-driven) shell isn't mirrored back to
+  // a stale story/page on rotation, and panel 3 doesn't keep a stale leaf.
+  clearFocus:     ()     => set({ focused: false, focusKind: null, selectedStoryId: null, selectedPageId: null }),
 }));

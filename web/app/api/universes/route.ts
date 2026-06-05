@@ -4,8 +4,11 @@ import { z } from 'zod';
 import slugify from 'slugify';
 import { requireAuth } from '@/lib/auth/helpers';
 import { checkRateLimit, rateLimitIdentity } from '@/lib/redis/ratelimit';
-import { getCache, setCache, invalidateCache, TTL, CacheKeys } from '@/lib/redis/cache';
-import { getUniverses, createUniverse, getUniverseCount } from '@/lib/db/queries/universes';
+import { invalidateCache, CacheKeys } from '@/lib/redis/cache';
+import {
+  getUniverses, createUniverse, getUniverseCount,
+  getFeaturedUniverses, FEATURED_LIMIT,
+} from '@/lib/db/queries/universes';
 
 const GENRES = [
   'fantasy','scienceFiction','romance','thriller',
@@ -41,17 +44,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ total });
   }
 
-  const cacheKey = featured ? CacheKeys.featuredUniverses() : undefined;
-  if (cacheKey) {
-    const cached = await getCache(cacheKey);
-    if (cached) return NextResponse.json(cached);
+  // `cache:universes:featured` holds exactly the canonical featured list (page 1,
+  // default size, unfiltered). Only that request is cache-aside (via the data
+  // layer's single source of truth); paged / filtered / searched / custom-limit
+  // featured requests query directly so they never get the wrong page back.
+  const isCanonicalFeatured =
+    featured && page === 1 && limit === FEATURED_LIMIT && !genre && !q;
+  if (isCanonicalFeatured) {
+    return NextResponse.json(await getFeaturedUniverses());
   }
 
   const result = await getUniverses({ page, limit, genre, q, featured });
   const payload = { ...result, page, limit, hasMore: result.total > page * limit };
-
-  if (cacheKey) await setCache(cacheKey, payload, TTL.featuredUniverses);
-
   return NextResponse.json(payload);
 }
 

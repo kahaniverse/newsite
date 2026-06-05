@@ -46,9 +46,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
 
+        {/* Analytics — lazyOnload defers these third-party scripts until the
+            browser is idle, keeping them off the hydration critical path.
+            PageView still fires; it's just slightly later. */}
         {/* Google Analytics */}
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-3LK8JS27EZ" strategy="afterInteractive" />
-        <Script id="ga-init" strategy="afterInteractive">{`
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-3LK8JS27EZ" strategy="lazyOnload" />
+        <Script id="ga-init" strategy="lazyOnload">{`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
@@ -56,7 +59,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}</Script>
 
         {/* Facebook Pixel */}
-        <Script id="fb-pixel" strategy="afterInteractive">{`
+        <Script id="fb-pixel" strategy="lazyOnload">{`
           !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){
           n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
           if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound }    from 'next/navigation';
 import { NarrowShell } from '@/components/shell/NarrowShell';
+import { HorizontalBrowse } from '@/components/shell/HorizontalBrowse';
+import { HydrateSelection } from '@/components/shell/HydrateSelection';
 import { CompositeScreen } from '@/components/screens/CompositeScreen';
 import { HeroBlock }   from '@/components/screens/HeroBlock';
 import { StoryList }   from '@/components/lists/StoryList';
@@ -22,7 +24,18 @@ export default async function AuthorPage({ params }: Props) {
   const photo = author.avatarImage || sampleAvatar(author.id, 480);
 
   return (
-    <NarrowShell title={author.displayName}>
+    <>
+      {/* Select this author so the horizontal detail panel shows them. */}
+      <HydrateSelection authorId={author.id} />
+
+      {/* Horizontal cascading panels (tablet + desktop) */}
+      <div className="hidden md:block">
+        <HorizontalBrowse />
+      </div>
+
+      {/* Narrow stacked layout (mobile) */}
+      <div className="block md:hidden">
+      <NarrowShell title={author.displayName}>
       <CompositeScreen
         hero={
           <HeroBlock
@@ -48,6 +61,8 @@ export default async function AuthorPage({ params }: Props) {
           { title: 'Stories Authored', node: <StoryList /> },
         ]}
       />
-    </NarrowShell>
+      </NarrowShell>
+      </div>
+    </>
   );
 }

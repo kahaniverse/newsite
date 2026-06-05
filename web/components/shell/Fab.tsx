@@ -12,17 +12,20 @@ interface SingleProps {
   href:    string;
   label:   string;
   icon?:   FabAction['icon'];
+  /** Optional data-testid for demo/automation (see web/demo/). */
+  testId?: string;
 }
 
 // ── Single FAB (red circle, bottom-right, above the bottom nav) ──────────
 // Mirrors the old app's SingleFloatingButton (react-native-paper FAB).
-export function Fab({ href, label, icon = 'plus' }: SingleProps) {
+export function Fab({ href, label, icon = 'plus', testId }: SingleProps) {
   const router = useRouter();
   return (
     <button
       type="button"
       onClick={() => router.push(href)}
       aria-label={label}
+      data-testid={testId}
       className="fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full bg-brand text-white shadow-[0_4px_14px_rgba(0,0,0,0.5)] flex items-center justify-center hover:brightness-110 active:scale-95 transition"
     >
       <FabIcon name={icon} />
@@ -76,7 +79,7 @@ export function SpeedDialFab({ actions }: { actions: FabAction[] }) {
 }
 
 // ── Icons (clean, action-matching glyphs) ────────────────────────────────
-function FabIcon({ name }: { name: NonNullable<FabAction['icon']> }) {
+export function FabIcon({ name }: { name: NonNullable<FabAction['icon']> }) {
   const c = 'currentColor';
   switch (name) {
     case 'next':      // next page — double chevron forward (page-next)
