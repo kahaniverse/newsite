@@ -17,6 +17,8 @@ export const config = defineConfig({
   rootDir,
   demoDir,
   driver: "browser",
+  // 4444 (the default) is taken by WSL/Docker relays on this machine; use a free port.
+  driverPort: 9544,
 
   // The selector awaited after launch to prove the UI booted. It lives on the
   // public landing page (public/index.html), which is what "/" serves to

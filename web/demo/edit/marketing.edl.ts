@@ -49,8 +49,8 @@ export const edl: VideoEdl = {
     {
       kind: "clip",
       source: clip("01-landing-carousel"),
-      in: 0,
-      out: 8,
+      in: 0.5,
+      out: 10.5,
       caption: "A living library of shared universes",
     },
 
@@ -71,8 +71,8 @@ export const edl: VideoEdl = {
     {
       kind: "clip",
       source: clip("02-browse-universes"),
-      in: 0,
-      out: 7,
+      in: 6.0, // skip the off-camera login lead-in
+      out: 12.4,
       caption: "Browse shared universes",
     },
 
@@ -80,8 +80,8 @@ export const edl: VideoEdl = {
     {
       kind: "clip",
       source: clip("03-read-story"),
-      in: 0,
-      out: 9,
+      in: 13.8, // skip login + drill-down
+      out: 24.0,
       caption: "Open a story, read a page",
     },
 
@@ -102,9 +102,9 @@ export const edl: VideoEdl = {
     {
       kind: "clip",
       source: clip("04-branch-page"),
-      in: 0,
-      out: 12,
-      rate: 1.25, // gently speed the typing/publish beat
+      in: 10.3, // start on the "add a page" beat
+      out: 23.2,
+      rate: 1.2, // gently speed the typing/publish beat
       caption: "Write your page, publish it",
     },
 
@@ -112,8 +112,8 @@ export const edl: VideoEdl = {
     {
       kind: "clip",
       source: clip("05-react"),
-      in: 0,
-      out: 6,
+      in: 10.0, // start as the reactions come into view
+      out: 17.0,
       caption: "Love & follow what you read",
     },
 

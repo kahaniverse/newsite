@@ -1,8 +1,8 @@
 /**
  * 03 — Open & read a story (authenticated, mobile layout).
  *
- * Universe → first story → first page reader. Shows the reading experience
- * (illustration + prose).
+ * Sign in → a universe → first story → first page reader. Shows the reading
+ * experience. (Login lead-in trimmed by the EDL.)
  */
 import { defineScenario } from "@mydemo/core";
 import { demoLogin, SEED_UNIVERSE_SLUG } from "./_helpers.ts";
@@ -11,13 +11,12 @@ export default defineScenario({
   id: "03-read-story",
   title: "Read a story",
   shows: "Drilling from a universe into a story and reading a page.",
-  async setup(h) {
-    await demoLogin(h);
-  },
   async run(h) {
+    await demoLogin(h);
     await h.goto(`/universes/${SEED_UNIVERSE_SLUG}`);
     await h.waitFor("story-card");
-    await h.pause(1800);
+    h.mark("Pick a story");
+    await h.pause(2000);
 
     await h.click("story-card"); // → /stories/<id>
     await h.waitFor("page-card");

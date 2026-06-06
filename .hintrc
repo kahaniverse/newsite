@@ -8,6 +8,8 @@
       {
         "aria-valid-attr-value": "off"
       }
-    ]
+    ],
+    "no-inline-styles": "off",
+    "compat-api/css": "off"
   }
 }

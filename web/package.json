@@ -35,6 +35,7 @@
     "demo:gifs":        "tsx demo/record.ts --gifs",
     "demo:video":       "tsx demo/edit/render.ts",
     "demo:intro":       "tsx demo/edit/render.ts --intro-only",
+    "demo:doctor":      "tsx demo/doctor.ts",
     "demo:typecheck":   "tsc --noEmit -p demo/tsconfig.json"
   },
   "dependencies": {
