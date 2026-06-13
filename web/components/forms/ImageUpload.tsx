@@ -8,8 +8,9 @@ interface Props {
   variant?:   'overlay' | 'inline';
 }
 
-// Easy image capture/upload button — opens the file picker (or camera on
-// mobile via capture), uploads to /api/upload, and returns the public URL.
+// Easy image upload button — opens the native file picker (mobile shows a
+// camera / photo-library / files chooser), uploads to /api/upload, and
+// returns the public URL.
 export function ImageUpload({ onUploaded, label = 'Upload / capture image', variant = 'overlay' }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -47,7 +48,6 @@ export function ImageUpload({ onUploaded, label = 'Upload / capture image', vari
         ref={inputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         aria-label="Upload or capture an image"
         title="Upload or capture an image"
         className="hidden"
