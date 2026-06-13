@@ -7,29 +7,6 @@ import { verifyTurnstile } from '@/lib/auth/turnstile';
 import { DEMO_MODE, DEMO_AUTHOR_AUTH_ID } from '@/lib/auth/demo';
 import { z } from 'zod';
 
-// Custom Instagram OAuth2 provider
-const Instagram = {
-  id:   'instagram',
-  name: 'Instagram',
-  type: 'oauth' as const,
-  authorization: {
-    url:    'https://api.instagram.com/oauth/authorize',
-    params: { scope: 'user_profile,user_media' },
-  },
-  token:   'https://api.instagram.com/oauth/access_token',
-  userinfo: 'https://graph.instagram.com/me?fields=id,username',
-  profile(profile: { id: string; username: string }) {
-    return {
-      id:    profile.id,
-      name:  profile.username,
-      email: null,
-      image: null,
-    };
-  },
-  clientId:     process.env.INSTAGRAM_CLIENT_ID,
-  clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
-  style: { logo: '', bg: '#E1306C', text: '#fff' },
-};
 
 const credentialsSchema = z.object({
   email:        z.string().email(),
@@ -51,7 +28,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId:     process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
     }),
-    Instagram as NextAuthConfig['providers'][0],
     Credentials({
       credentials: {
         email:        { label: 'Email',    type: 'email' },
