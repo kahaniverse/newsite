@@ -147,16 +147,22 @@ export async function toggleReaction(
   return 'added';
 }
 
-export async function recordView(
+// A view is counted at most once per (viewer, target): the first time a signed-in
+// user opens an individual item we insert a 'view' reaction row and bump the
+// denormalized counter. Repeat visits and refreshes find the existing row and
+// no-op, so the count reflects unique viewers — and merely seeing an entity in a
+// list (which never calls this) leaves its count untouched.
+export async function recordViewOnce(
+  reactorId:  string,
   targetType: TargetType,
   targetId:   string,
-): Promise<void> {
-  switch (targetType) {
-    case 'universe': await sql`UPDATE universes SET view_count = view_count + 1 WHERE id = ${targetId}::uuid`; return;
-    case 'story':    await sql`UPDATE stories   SET view_count = view_count + 1 WHERE id = ${targetId}::uuid`; return;
-    case 'page':     await sql`UPDATE pages     SET view_count = view_count + 1 WHERE id = ${targetId}::uuid`; return;
-    case 'author':   return; // authors table has no view_count
-  }
+): Promise<'added' | 'noop'> {
+  if (targetType === 'author') return 'noop'; // authors have no view_count
+  const existingId = await findReactionId(reactorId, 'view', targetType, targetId);
+  if (existingId) return 'noop';
+  await insertReaction(reactorId, 'view', targetType, targetId);
+  await bumpCounter(targetType, targetId, 'view', 1);
+  return 'added';
 }
 
 export async function getUserReactions(

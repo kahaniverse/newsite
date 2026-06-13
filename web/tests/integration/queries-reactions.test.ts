@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { ensureSchema, truncateAll, makeAuthor, makeUniverse, sql } from './db';
-import { toggleReaction, recordView, getUserReactions } from '@/lib/db/queries/reactions';
+import { toggleReaction, recordViewOnce, getUserReactions } from '@/lib/db/queries/reactions';
 
 describe('queries/reactions', () => {
   beforeAll(async () => { await ensureSchema(); });
@@ -49,18 +49,29 @@ describe('queries/reactions', () => {
     `).rejects.toThrow();
   });
 
-  it('recordView bumps view_count without writing a reactions row', async () => {
+  it('recordViewOnce counts a unique view per viewer and is idempotent', async () => {
+    const viewer   = await makeAuthor();
     const creator  = await makeAuthor();
     const universe = await makeUniverse(creator.id);
 
-    await recordView('universe', universe.id);
-    await recordView('universe', universe.id);
+    const first  = await recordViewOnce(viewer.id, 'universe', universe.id);
+    const second = await recordViewOnce(viewer.id, 'universe', universe.id);
+    expect(first).toBe('added');
+    expect(second).toBe('noop');
 
+    // The viewer's repeat visit does not inflate the count.
     const row = await sql`SELECT view_count FROM universes WHERE id=${universe.id}`;
-    expect(Number(row[0].view_count)).toBe(2);
+    expect(Number(row[0].view_count)).toBe(1);
 
-    const rxRows = await sql`SELECT COUNT(*)::int AS c FROM reactions`;
-    expect(rxRows[0].c).toBe(0);
+    // Exactly one 'view' reaction row is written for the viewer.
+    const rxRows = await sql`SELECT COUNT(*)::int AS c FROM reactions WHERE reaction_type = 'view'::reaction_type`;
+    expect(rxRows[0].c).toBe(1);
+
+    // A different viewer counts again.
+    const viewer2 = await makeAuthor();
+    await recordViewOnce(viewer2.id, 'universe', universe.id);
+    const row2 = await sql`SELECT view_count FROM universes WHERE id=${universe.id}`;
+    expect(Number(row2[0].view_count)).toBe(2);
   });
 
   it('getUserReactions resolves the target_id regardless of which target column is set', async () => {

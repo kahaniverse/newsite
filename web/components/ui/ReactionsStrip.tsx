@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { useReactions } from '@/hooks/useReactions';
+import { hydrateReactions } from '@/lib/reactions/hydrate';
 import { useToastStore } from '@/store';
 import type { TargetType } from '@/lib/types';
 
@@ -31,6 +32,9 @@ export function ReactionsStrip({
 
   useEffect(() => {
     initCounts(targetId, { love: loveCount, follow: followCount, view: viewCount });
+    // Restore whether *this viewer* has loved/connected, so the filled state is
+    // consistent everywhere this entity appears (card, list, detail header).
+    hydrateReactions(targetId);
   }, [targetId, loveCount, followCount, viewCount]); // eslint-disable-line
 
   async function handleShare() {

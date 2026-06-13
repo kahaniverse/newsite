@@ -16,6 +16,11 @@ interface ReactionState {
   ) => void;
   isActive: (targetId: string, type: ReactionKind) => boolean;
   applyToggle: (targetId: string, type: ReactionKind, nextActive: boolean) => void;
+  // Seed the viewer's own reaction state (loaded from the server) so the filled
+  // love/connect glyphs are consistent on every view of the same entity.
+  setActiveStates: (
+    entries: Array<{ targetId: string; love: boolean; follow: boolean }>,
+  ) => void;
 }
 
 const ZERO_ACTIVE: Record<ReactionKind, boolean> = { love: false, follow: false };
@@ -36,6 +41,16 @@ export const useReactionStore = create<ReactionState>((set, get) => ({
 
   isActive(targetId, type) {
     return !!get().active[targetId]?.[type];
+  },
+
+  setActiveStates(entries) {
+    set(state => {
+      const active = { ...state.active };
+      for (const e of entries) {
+        active[e.targetId] = { ...ZERO_ACTIVE, ...active[e.targetId], love: e.love, follow: e.follow };
+      }
+      return { active };
+    });
   },
 
   applyToggle(targetId, type, nextActive) {

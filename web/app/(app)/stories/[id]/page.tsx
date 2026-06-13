@@ -7,6 +7,7 @@ import { CompositeScreen } from '@/components/screens/CompositeScreen';
 import { HeroBlock }   from '@/components/screens/HeroBlock';
 import { PageList }    from '@/components/lists/PageList';
 import { HydrateSelection } from '@/components/shell/HydrateSelection';
+import { ViewTracker }   from '@/components/ui/ViewTracker';
 import { Fab }          from '@/components/shell/Fab';
 import { getStoryById } from '@/lib/db/queries/stories';
 import { getPagesByStory } from '@/lib/db/queries/pages';
@@ -36,6 +37,9 @@ export default async function StoryPage({ params }: Props) {
 
   return (
     <>
+      {/* Count a unique view for this story (click-through only). */}
+      <ViewTracker targetId={story.id} targetType="story" />
+
       {/* Pre-select this story so the horizontal panels cascade to it. */}
       <HydrateSelection
         universeSlug={story.universe.slug}

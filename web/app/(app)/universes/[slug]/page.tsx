@@ -8,6 +8,7 @@ import { HeroBlock }      from '@/components/screens/HeroBlock';
 import { StoryList }      from '@/components/lists/StoryList';
 import { Fab }            from '@/components/shell/Fab';
 import { HydrateSelection } from '@/components/shell/HydrateSelection';
+import { ViewTracker }     from '@/components/ui/ViewTracker';
 import { getUniverseBySlug } from '@/lib/db/queries/universes';
 import { GENRE_LABELS } from '@/lib/types';
 
@@ -29,6 +30,9 @@ export default async function UniversePage({ params }: Props) {
 
   return (
     <>
+      {/* Count a unique view for this universe (click-through only). */}
+      <ViewTracker targetId={universe.id} targetType="universe" />
+
       {/* Pre-select this universe so the horizontal panels reflect the route. */}
       <HydrateSelection universeSlug={universe.slug} universeId={universe.id} />
 

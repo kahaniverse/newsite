@@ -5,6 +5,7 @@ import { PageCard }    from '@/components/cards/PageCard';
 import { PageList }    from '@/components/lists/PageList';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { HydrateSelection } from '@/components/shell/HydrateSelection';
+import { ViewTracker }   from '@/components/ui/ViewTracker';
 import { SpeedDialFab } from '@/components/shell/Fab';
 import { getPageById } from '@/lib/db/queries/pages';
 import { getStoryById } from '@/lib/db/queries/stories';
@@ -52,6 +53,9 @@ export default async function PageDetailPage({ params }: Props) {
 
   return (
     <>
+      {/* Count a unique view for this page (click-through only). */}
+      <ViewTracker targetId={page.id} targetType="page" />
+
       {hydrate}
 
       {/* Horizontal cascading panels (tablet + desktop) */}
