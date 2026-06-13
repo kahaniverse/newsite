@@ -19,8 +19,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         <footer>
           <ul className="footer-links">
-            <li><Link href="/terms">Terms</Link></li>
-            <li><Link href="/privacy">Privacy</Link></li>
+            <li><a href="/terms.html">Terms</a></li>
+            <li><a href="/privacy.html">Privacy</a></li>
             <li><a href="mailto:help@kahaniverse.com">Help</a></li>
           </ul>
           <p className="footer-copy">© 2025 Kahaniverse. All rights reserved.</p>

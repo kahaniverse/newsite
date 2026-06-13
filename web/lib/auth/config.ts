@@ -97,7 +97,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.type === 'oauth') {
+      // OIDC providers (e.g. Google) report type 'oidc', not 'oauth'.
+      if (account?.type === 'oauth' || account?.type === 'oidc') {
         const authId = `${account.provider}:${account.providerAccountId}`;
         const existing = await getAuthorByAuthId(authId);
         if (!existing) {
@@ -116,7 +117,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     // chain through the adapter.
     async jwt({ token, user, account }) {
       if (user && account) {
-        if (account.type === 'oauth') {
+        if (account.type === 'oauth' || account.type === 'oidc') {
           token.authId = `${account.provider}:${account.providerAccountId}`;
         } else if (account.provider === 'demo' && DEMO_MODE) {
           token.authId = DEMO_AUTHOR_AUTH_ID;

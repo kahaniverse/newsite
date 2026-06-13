@@ -62,8 +62,8 @@ export function AuthCard({ universeCount, initialTab = 'login' }: Props) {
         >
           <RegisterForm />
           <p className="auth-footer-text">
-            By joining you agree to our <Link href="/terms">Terms</Link> &amp;{' '}
-            <Link href="/privacy">Privacy Policy</Link>.
+            By joining you agree to our <a href="/terms.html">Terms</a> &amp;{' '}
+            <a href="/privacy.html">Privacy Policy</a>.
           </p>
         </div>
 
