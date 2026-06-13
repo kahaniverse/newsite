@@ -24,5 +24,12 @@ export function rateLimitIdentity(req: NextRequest, userId?: string | null): str
 }
 
 export async function checkRateLimit(identifier: string): Promise<{ success: boolean }> {
-  return mutationRateLimit.limit(identifier);
+  try {
+    return await mutationRateLimit.limit(identifier);
+  } catch (err) {
+    // Fail open: a Redis outage must not take down every mutation route.
+    // We'd rather skip rate limiting briefly than 500 all writes.
+    console.error('[ratelimit] Redis unavailable — allowing request:', err);
+    return { success: true };
+  }
 }

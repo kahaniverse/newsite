@@ -33,6 +33,22 @@ export async function invalidateCache(keys: string[]): Promise<void> {
   }
 }
 
+/**
+ * Best-effort dedup lock. Returns true if the caller may proceed.
+ * Acquires `key` with NX so concurrent duplicates (Redis up, key present)
+ * return false. Fails open: if Redis is unreachable, returns true so a Redis
+ * outage degrades into "no dedup" rather than breaking the operation.
+ */
+export async function acquireLock(key: string, ttlSeconds: number): Promise<boolean> {
+  try {
+    const res = await redis.set(key, '1', { nx: true, ex: ttlSeconds });
+    return res === 'OK';
+  } catch (err) {
+    console.error('[lock] Redis unavailable — proceeding without dedup lock:', err);
+    return true;
+  }
+}
+
 export const CacheKeys = {
   featuredUniverses:          () => 'cache:universes:featured',
   storyListPage:   (n: number) => `cache:stories:page:${n}`,

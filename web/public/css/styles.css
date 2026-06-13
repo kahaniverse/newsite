@@ -462,10 +462,9 @@ footer {
   background: rgba(0,0,0,1);
   border-top: 1px solid rgba(201,147,58,0.12);
   padding: 1.25rem 2.5rem;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
   gap: 1rem;
 }
 
@@ -474,7 +473,35 @@ footer {
   font-size: 0.53rem;
   color: var(--muted);
   letter-spacing: 0.08em;
+  text-align: center;
+  margin: 0;
 }
+
+.footer-links { justify-self: start; }
+
+.footer-powered {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.53rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-powered:hover { color: var(--gold-light); }
+
+.footer-powered-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+}
+
+.footer-powered-name { font-weight: 700; }
 
 .footer-links { display: flex; gap: 1.5rem; list-style: none; }
 
@@ -526,5 +553,12 @@ footer {
 @media (max-width: 520px) {
   .book-headline { font-size: 1.35rem; }
   nav { padding: 0.5rem 1.25rem; }
-  footer { flex-direction: column; text-align: center; }
+  footer {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    gap: 0.75rem;
+  }
+  .footer-links { justify-self: center; }
+  .footer-powered { justify-self: center; }
 }

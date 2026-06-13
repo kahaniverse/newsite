@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAuth } from '@/lib/auth/helpers';
 import { checkRateLimit, rateLimitIdentity } from '@/lib/redis/ratelimit';
-import { redis } from '@/lib/redis/client';
-import { CacheKeys, TTL } from '@/lib/redis/cache';
+import { acquireLock, CacheKeys, TTL } from '@/lib/redis/cache';
 import { toggleReaction } from '@/lib/db/queries/reactions';
 
 const ReactionSchema = z.object({
@@ -26,10 +25,10 @@ async function handle(req: NextRequest, method: 'POST' | 'DELETE') {
   const { type, targetType, targetId } = parsed.data;
   const userId = session!.user.id;
 
-  // Dedup lock
-  const lockKey = CacheKeys.reactionLock(userId, type, targetId);
-  const locked  = await redis.set(lockKey, '1', { nx: true, ex: TTL.reactionLock });
-  if (!locked) return NextResponse.json({ error: 'Too many requests', code: 'RATE_LIMITED' }, { status: 429 });
+  // Dedup lock (fail-open: a Redis outage skips dedup rather than 500ing).
+  const lockKey  = CacheKeys.reactionLock(userId, type, targetId);
+  const proceed  = await acquireLock(lockKey, TTL.reactionLock);
+  if (!proceed) return NextResponse.json({ error: 'Too many requests', code: 'RATE_LIMITED' }, { status: 429 });
 
   try {
     const result = await toggleReaction(userId, type, targetType, targetId);
