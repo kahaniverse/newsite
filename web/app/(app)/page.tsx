@@ -1,4 +1,5 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { redirect }               from 'next/navigation';
 import { HorizontalBrowse }   from '@/components/shell/HorizontalBrowse';
 import { NarrowShell }        from '@/components/shell/NarrowShell';
 import { BrowsePanel }        from '@/components/panels/BrowsePanel';
@@ -9,15 +10,13 @@ import { getServerQueryClient } from '@/lib/react-query/server';
 
 export const revalidate = 300;
 
-// Unauthenticated visitors are rewritten to /index.html by middleware,
-// so this page only renders for signed-in users.
 export default async function HomePage() {
-  // Featured list goes through Redis cache-aside (5 min) instead of hitting Neon
-  // on every render; auth() runs in parallel.
   const [session, featured] = await Promise.all([
     auth(),
     getFeaturedUniverses(),
   ]);
+
+  if (!session) redirect('/index.html');
   const universes = featured.data;
 
   // Seed React Query with the data we already fetched so client lists keyed on

@@ -1,16 +1,18 @@
 import type { Metadata } from 'next';
+import { redirect }    from 'next/navigation';
 import { NarrowShell } from '@/components/shell/NarrowShell';
 import { FormDialog }  from '@/components/shell/FormDialog';
 import { StoryForm }   from '@/components/forms/StoryForm';
+import { auth }        from '@/lib/auth/config';
 
 export const metadata: Metadata = { title: 'Write a Story — Kahaniverse' };
 
-// Auth-gated form page; its client <StoryForm> reads ?universeId via
-// useSearchParams. Render dynamically so that search-params CSR bailout never
-// fails the static build (and don't rely on fragile dynamic inference).
 export const dynamic = 'force-dynamic';
 
-export default function NewStoryPage() {
+export default async function NewStoryPage() {
+  const session = await auth();
+  if (!session) redirect('/login?callbackUrl=/stories/new');
+
   return (
     <>
       {/* Horizontal (tablet + desktop): modal dialog, no bottom nav. */}

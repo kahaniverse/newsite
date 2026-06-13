@@ -19,14 +19,6 @@ const nextConfig = {
     // a singleton.
   },
   webpack: (config, { dev }) => {
-    // The webpack persistent (filesystem) cache logs a benign
-    //   "Serializing big strings (128kiB) impacts deserialization performance"
-    // hint whenever it caches a string module larger than 128 KiB. In dev that
-    // string is Tailwind's full utility stylesheet (every class, emitted as one
-    // string) plus large vendor module-graph chunks — none of which is app code
-    // we can shrink, and none of which affects runtime/browser performance. It's
-    // purely a cache-serialization hint, so drop infra logging to errors in dev
-    // to keep the dev console clean.
     if (dev) {
       config.infrastructureLogging = { ...config.infrastructureLogging, level: 'error' };
     }

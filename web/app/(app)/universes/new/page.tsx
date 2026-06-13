@@ -1,11 +1,16 @@
 import type { Metadata } from 'next';
+import { redirect }     from 'next/navigation';
 import { NarrowShell }  from '@/components/shell/NarrowShell';
 import { FormDialog }   from '@/components/shell/FormDialog';
 import { UniverseForm } from '@/components/forms/UniverseForm';
+import { auth }         from '@/lib/auth/config';
 
 export const metadata: Metadata = { title: 'Create a Universe — Kahaniverse' };
 
-export default function NewUniversePage() {
+export default async function NewUniversePage() {
+  const session = await auth();
+  if (!session) redirect('/login?callbackUrl=/universes/new');
+
   return (
     <>
       {/* Horizontal (tablet + desktop): modal dialog, no bottom nav. */}
