@@ -29,11 +29,13 @@ export function SocialAuthButtons({ callbackUrl = '/' }: Props) {
       <button
         type="button"
         className="social-btn"
-        onClick={() => signIn('instagram', { callbackUrl })}
-        aria-label="Continue with Instagram"
+        disabled
+        aria-label="Instagram — coming soon"
+        style={{ opacity: 0.5, cursor: 'not-allowed', position: 'relative' }}
       >
         <InstagramIcon />
         Instagram
+        <span style={{ fontSize: '0.6rem', marginLeft: '4px', opacity: 0.8 }}>soon</span>
       </button>
     </div>
   );
