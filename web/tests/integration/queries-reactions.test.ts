@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { ensureSchema, truncateAll, makeAuthor, makeUniverse, sql } from './db';
-import { toggleReaction, recordViewOnce, getUserReactions } from '@/lib/db/queries/reactions';
+import { toggleReaction, recordViewOnce, getUserReactions, getReactionState } from '@/lib/db/queries/reactions';
 
 describe('queries/reactions', () => {
   beforeAll(async () => { await ensureSchema(); });
@@ -82,5 +82,29 @@ describe('queries/reactions', () => {
     await toggleReaction(reactor.id, 'love', 'universe', universe.id);
     const list = await getUserReactions(reactor.id, [universe.id]);
     expect(list).toEqual([{ targetId: universe.id, type: 'love' }]);
+  });
+
+  it('getReactionState returns counts and the viewer\'s own state from one source — a lit glyph is always counted', async () => {
+    const me       = await makeAuthor();
+    const other    = await makeAuthor();
+    const creator  = await makeAuthor();
+    const universe = await makeUniverse(creator.id);
+
+    await toggleReaction(me.id,    'love',   'universe', universe.id);
+    await toggleReaction(other.id, 'love',   'universe', universe.id);
+    await toggleReaction(me.id,    'follow', 'universe', universe.id);
+
+    const [mine] = await getReactionState(me.id, [universe.id]);
+    expect(mine).toMatchObject({ targetId: universe.id, love: 2, follow: 1, myLove: true, myFollow: true });
+    // Invariant behind the "red icon, count 0" bug: if I lit it, it's counted.
+    expect(mine.love).toBeGreaterThanOrEqual(1);
+
+    // A different viewer sees the same counts but not "mine".
+    const [theirs] = await getReactionState(other.id, [universe.id]);
+    expect(theirs).toMatchObject({ love: 2, follow: 1, myLove: true, myFollow: false });
+
+    // A target with no reactions is simply absent (caller fills zeroes).
+    const empty = await getReactionState(me.id, ['00000000-0000-0000-0000-0000000000ff']);
+    expect(empty).toEqual([]);
   });
 });

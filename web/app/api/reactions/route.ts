@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { requireAuth, getOptionalAuth } from '@/lib/auth/helpers';
 import { checkRateLimit, rateLimitIdentity } from '@/lib/redis/ratelimit';
 import { acquireLock, CacheKeys, TTL } from '@/lib/redis/cache';
-import { recordViewOnce, toggleReaction, getUserReactions } from '@/lib/db/queries/reactions';
+import { recordViewOnce, toggleReaction, getReactionState } from '@/lib/db/queries/reactions';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,22 +47,23 @@ async function handle(req: NextRequest, method: 'POST' | 'DELETE') {
 export const POST   = (req: NextRequest) => handle(req, 'POST');
 export const DELETE = (req: NextRequest) => handle(req, 'DELETE');
 
-// Returns the current viewer's reactions for a set of targets, so the client can
-// hydrate the filled/active state of love & connect across every view of the same
-// entity. Anonymous callers get an empty list (no per-user state to restore).
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Authoritative reaction state for a set of targets: live counts plus whether the
+// current viewer reacted. The client hydrates BOTH from this single source, so the
+// filled glyph and the count can't diverge and aren't subject to a stale cached
+// count. Anonymous callers still get accurate counts (just no "mine" flags).
+const UUID_RE   = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ANON_UUID = '00000000-0000-0000-0000-000000000000'; // matches no reactor
 
 export async function GET(req: NextRequest) {
   const session = await getOptionalAuth();
-  if (!session?.user?.id) return NextResponse.json({ reactions: [] });
 
   const ids = (req.nextUrl.searchParams.get('targetIds') ?? '')
     .split(',')
     .map(s => s.trim())
     .filter(id => UUID_RE.test(id))
     .slice(0, 200);
-  if (!ids.length) return NextResponse.json({ reactions: [] });
+  if (!ids.length) return NextResponse.json({ states: [] });
 
-  const reactions = await getUserReactions(session.user.id, ids);
-  return NextResponse.json({ reactions });
+  const states = await getReactionState(session?.user?.id ?? ANON_UUID, ids);
+  return NextResponse.json({ states });
 }

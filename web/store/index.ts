@@ -16,14 +16,24 @@ interface ReactionState {
   ) => void;
   isActive: (targetId: string, type: ReactionKind) => boolean;
   applyToggle: (targetId: string, type: ReactionKind, nextActive: boolean) => void;
-  // Seed the viewer's own reaction state (loaded from the server) so the filled
-  // love/connect glyphs are consistent on every view of the same entity.
-  setActiveStates: (
-    entries: Array<{ targetId: string; love: boolean; follow: boolean }>,
+  // Seed authoritative reaction state from the server (counts + whether the
+  // viewer reacted), so the filled love/connect glyphs AND the counts are
+  // consistent on every view of the same entity and never show a stale count.
+  hydrateState: (
+    entries: Array<{
+      targetId: string;
+      love: number; follow: number; view: number;
+      myLove: boolean; myFollow: boolean;
+    }>,
   ) => void;
 }
 
 const ZERO_ACTIVE: Record<ReactionKind, boolean> = { love: false, follow: false };
+
+// Targets the viewer has toggled this session. Server hydration must never
+// clobber an optimistic toggle that's still in flight, so hydrateState skips
+// these. Kept outside store state — it's a guard, not reactive UI data.
+const touched = new Set<string>();
 
 export const useReactionStore = create<ReactionState>((set, get) => ({
   counts: {},
@@ -43,17 +53,21 @@ export const useReactionStore = create<ReactionState>((set, get) => ({
     return !!get().active[targetId]?.[type];
   },
 
-  setActiveStates(entries) {
+  hydrateState(entries) {
     set(state => {
+      const counts = { ...state.counts };
       const active = { ...state.active };
       for (const e of entries) {
-        active[e.targetId] = { ...ZERO_ACTIVE, ...active[e.targetId], love: e.love, follow: e.follow };
+        if (touched.has(e.targetId)) continue; // don't clobber an in-flight optimistic toggle
+        counts[e.targetId] = { love: e.love, follow: e.follow, view: e.view };
+        active[e.targetId] = { ...ZERO_ACTIVE, love: e.myLove, follow: e.myFollow };
       }
-      return { active };
+      return { counts, active };
     });
   },
 
   applyToggle(targetId, type, nextActive) {
+    touched.add(targetId); // viewer-driven: protect this target from hydration clobber
     set(state => {
       const prevCounts = state.counts[targetId] ?? { love: 0, follow: 0, view: 0 };
       const prevActive = state.active[targetId] ?? ZERO_ACTIVE;

@@ -179,3 +179,44 @@ export async function getUserReactions(
   `;
   return rows.map(r => ({ targetId: r.target_id as string, type: r.reaction_type as ReactionType }));
 }
+
+export interface ReactionState {
+  targetId:  string;
+  love:      number;
+  follow:    number;
+  view:      number;
+  myLove:    boolean;
+  myFollow:  boolean;
+}
+
+// Authoritative per-target reaction state derived directly from the reactions
+// table — both the live counts and whether THIS viewer reacted. Computed from a
+// single source so the filled glyph and the count can never disagree (a "love"
+// glyph the viewer lit is, by construction, counted). This is what the client
+// hydrates from, so it's also immune to a stale/cached denormalized counter.
+// Targets with no rows simply don't appear; the caller fills them in as zeroes.
+export async function getReactionState(
+  reactorId: string,
+  targetIds: string[],
+): Promise<ReactionState[]> {
+  if (!targetIds.length) return [];
+  const rows = await sql`
+    SELECT COALESCE(universe_id, story_id, page_id, author_id)::text AS target_id,
+           COUNT(*) FILTER (WHERE reaction_type = 'love')::int   AS love,
+           COUNT(*) FILTER (WHERE reaction_type = 'follow')::int AS follow,
+           COUNT(*) FILTER (WHERE reaction_type = 'view')::int   AS view,
+           COALESCE(BOOL_OR(reactor_id = ${reactorId}::uuid AND reaction_type = 'love'),   false) AS my_love,
+           COALESCE(BOOL_OR(reactor_id = ${reactorId}::uuid AND reaction_type = 'follow'), false) AS my_follow
+    FROM reactions
+    WHERE COALESCE(universe_id, story_id, page_id, author_id) = ANY(${targetIds}::uuid[])
+    GROUP BY 1
+  `;
+  return rows.map(r => ({
+    targetId: r.target_id as string,
+    love:     r.love as number,
+    follow:   r.follow as number,
+    view:     r.view as number,
+    myLove:   !!r.my_love,
+    myFollow: !!r.my_follow,
+  }));
+}
