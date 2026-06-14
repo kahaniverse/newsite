@@ -3,12 +3,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { AvatarImage } from '@/components/ui/AvatarImage';
+import { useReactionStore } from '@/store';
 import type { Session } from 'next-auth';
 
 interface Props { session: Session | null }
 
 export function NavUserMenu({ session }: Props) {
   const [open, setOpen] = useState(false);
+  const resetReactions = useReactionStore(s => s.resetReactions);
 
   if (!session) {
     return (
@@ -42,7 +44,7 @@ export function NavUserMenu({ session }: Props) {
             <Link href="/universes/new" className="block px-4 py-2 text-sm text-text-primary hover:bg-bg-card transition-colors" onClick={() => setOpen(false)}>New Universe</Link>
             <hr className="border-border my-1" />
             <button
-              onClick={() => signOut({ callbackUrl: '/' })}
+              onClick={() => { resetReactions(); signOut({ callbackUrl: '/' }); }}
               className="w-full text-left px-4 py-2 text-sm text-error hover:bg-bg-card transition-colors"
             >
               Sign Out

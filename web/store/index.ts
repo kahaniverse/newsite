@@ -19,6 +19,8 @@ interface ReactionState {
   // Seed authoritative reaction state from the server (counts + whether the
   // viewer reacted), so the filled love/connect glyphs AND the counts are
   // consistent on every view of the same entity and never show a stale count.
+  // Love/follow are authoritative here; the view count is preserved from the seed
+  // so a freshly-recorded view isn't stomped by a hydration response.
   hydrateState: (
     entries: Array<{
       targetId: string;
@@ -26,27 +28,46 @@ interface ReactionState {
       myLove: boolean; myFollow: boolean;
     }>,
   ) => void;
+  // Optimistically reflect the viewer's own unique view of an item. Order-
+  // independent: if the target isn't seeded yet, the bump is queued and applied
+  // when initCounts seeds it.
+  recordView: (targetId: string) => void;
+  // Drop all reaction state + session guards (call when the signed-in user
+  // changes, so a new viewer doesn't inherit the previous viewer's "mine" flags).
+  resetReactions: () => void;
 }
 
 const ZERO_ACTIVE: Record<ReactionKind, boolean> = { love: false, follow: false };
 
-// Targets the viewer has toggled this session. Server hydration must never
-// clobber an optimistic toggle that's still in flight, so hydrateState skips
-// these. Kept outside store state — it's a guard, not reactive UI data.
-const touched = new Set<string>();
+// The in-session store is the single source of truth for reactions. These
+// module-level guards live alongside it (not reactive UI data):
+//   touched      — targets the viewer toggled; hydration must not clobber an
+//                  optimistic toggle that's still in flight.
+//   pendingViews — view bumps that arrived before the target was seeded; applied
+//                  when initCounts first seeds the target.
+// resetReactions() clears all of them on an auth-user change.
+let touched      = new Set<string>();
+let pendingViews = new Set<string>();
 
 export const useReactionStore = create<ReactionState>((set, get) => ({
   counts: {},
   active: {},
 
+  // Seed-if-absent: the first value the store learns for a target (here, the
+  // SSR/list prop) wins as the initial paint, but a later, possibly-stale prop on
+  // a remount or back-navigation must NEVER overwrite what the store already knows
+  // (a hydration result or the viewer's own toggle). That's what keeps a reaction
+  // visible across every screen, including back navigation.
   initCounts(targetId, counts, active) {
-    set(state => ({
-      counts: { ...state.counts, [targetId]: counts },
-      active: {
-        ...state.active,
-        [targetId]: { ...ZERO_ACTIVE, ...(state.active[targetId] ?? {}), ...(active ?? {}) },
-      },
-    }));
+    set(state => {
+      if (state.counts[targetId]) return state; // already known — don't clobber
+      let view = counts.view;
+      if (pendingViews.has(targetId)) { view += 1; pendingViews.delete(targetId); }
+      return {
+        counts: { ...state.counts, [targetId]: { ...counts, view } },
+        active: { ...state.active, [targetId]: { ...ZERO_ACTIVE, ...(active ?? {}) } },
+      };
+    });
   },
 
   isActive(targetId, type) {
@@ -59,11 +80,28 @@ export const useReactionStore = create<ReactionState>((set, get) => ({
       const active = { ...state.active };
       for (const e of entries) {
         if (touched.has(e.targetId)) continue; // don't clobber an in-flight optimistic toggle
-        counts[e.targetId] = { love: e.love, follow: e.follow, view: e.view };
+        // Love/follow are authoritative from the server; keep the seeded/optimistic
+        // view count (views can't drift, and this avoids stomping a fresh view).
+        const prevView = state.counts[e.targetId]?.view ?? e.view;
+        counts[e.targetId] = { love: e.love, follow: e.follow, view: prevView };
         active[e.targetId] = { ...ZERO_ACTIVE, love: e.myLove, follow: e.myFollow };
       }
       return { counts, active };
     });
+  },
+
+  recordView(targetId) {
+    set(state => {
+      const prev = state.counts[targetId];
+      if (!prev) { pendingViews.add(targetId); return state; } // seed not here yet
+      return { counts: { ...state.counts, [targetId]: { ...prev, view: prev.view + 1 } } };
+    });
+  },
+
+  resetReactions() {
+    touched      = new Set<string>();
+    pendingViews = new Set<string>();
+    set({ counts: {}, active: {} });
   },
 
   applyToggle(targetId, type, nextActive) {
