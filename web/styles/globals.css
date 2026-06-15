@@ -139,6 +139,12 @@ a {
   border: 1px solid var(--border);
 }
 .btn-pill-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn-pill-followed {           /* active "following" state — mauve fill, distinct from the red Follow CTA */
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
+}
+.btn-pill-followed:hover { filter: brightness(1.08); }
 
 /* Light "paper" content card floating on the dark chrome. */
 .paper-card {

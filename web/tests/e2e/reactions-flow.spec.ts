@@ -23,6 +23,41 @@ const toggleLove = async (c: Ctx, id: string) =>
 const recordView = async (c: Ctx, id: string) =>
   (await (await c.request.post('/api/reactions', { data: { type: 'view', targetType: 'story', targetId: id } })).json()).result;
 
+test('following an author from the list increments the count and toggles state', async ({ browser }) => {
+  const ctx = await browser.newContext({ baseURL: 'http://localhost:3000', viewport: MOBILE });
+  const page = await ctx.newPage();
+  try {
+    await loginViaApi(ctx, ALICE);
+    await page.goto('/authors');
+
+    const followBtn = page.getByTestId('author-follow').first();
+    await followBtn.waitFor();
+    const countText = () => page.getByText(/followers/i).first().innerText();
+    const num = async () => parseInt((await countText()).replace(/[^0-9]/g, ''), 10);
+
+    // Normalize to "not following" so the run is deterministic.
+    if ((await followBtn.getAttribute('aria-pressed')) === 'true') {
+      await followBtn.click();
+      await expect(followBtn).toHaveAttribute('aria-pressed', 'false');
+    }
+    await expect(followBtn).toHaveText(/^follow$/i);
+    const before = await num();
+
+    // Follow → state flips to "Following" (colour change) and the count goes up 1.
+    await followBtn.click();
+    await expect(followBtn).toHaveAttribute('aria-pressed', 'true');
+    await expect(followBtn).toHaveText(/following/i);
+    expect(await num()).toBe(before + 1);
+
+    // Unfollow → back to baseline (also leaves the dev data clean).
+    await followBtn.click();
+    await expect(followBtn).toHaveAttribute('aria-pressed', 'false');
+    expect(await num()).toBe(before);
+  } finally {
+    await ctx.close();
+  }
+});
+
 test('reaction by one user does not affect another; counts are shared', async ({ browser }) => {
   const ctxA = await browser.newContext({ baseURL: 'http://localhost:3000', viewport: MOBILE });
   const ctxB = await browser.newContext({ baseURL: 'http://localhost:3000', viewport: MOBILE });

@@ -36,6 +36,14 @@ export function ReactionsStrip({
   const { counts, active, toggle, initCounts } = useReactions(targetId, targetType);
   const pushToast = useToastStore(s => s.push);
 
+  // Page reactions use a distinct hue (mauve) so, when drilled into a story, they
+  // don't read as the story's own red reactions. Pages have no "follow" concept,
+  // so that glyph is omitted for them.
+  const isPage      = targetType === 'page';
+  const accentText  = isPage ? 'text-accent-deep'       : 'text-brand';
+  const accentHover = isPage ? 'hover:text-accent-deep' : 'hover:text-brand';
+  const showFollow  = !isPage;
+
   useEffect(() => {
     initCounts(targetId, { love: loveCount, follow: followCount, view: viewCount }, { authoritative });
     // Restore whether *this viewer* has loved/connected, so the filled state is
@@ -54,27 +62,29 @@ export function ReactionsStrip({
     const size = 19;
     return (
       <div className="flex items-center justify-between w-full px-1 pt-2 text-paper-ink border-t border-paper-border" role="group" aria-label="Reactions">
-        <span className="flex items-center gap-1.5 text-brand" aria-label={`Views — ${counts.view}`}>
+        <span className={`flex items-center gap-1.5 ${accentText}`} aria-label={`Views — ${counts.view}`}>
           <Eye size={size} /><span className="text-xs tabular-nums text-paper-ink">{counts.view.toLocaleString()}</span>
         </span>
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); toggle('love'); }}
-          className={`flex items-center gap-1.5 text-brand ${active.love ? 'reaction-active' : ''}`}
+          className={`flex items-center gap-1.5 ${accentText} ${active.love ? 'reaction-active' : ''}`}
           data-testid="reaction-love"
           aria-label={`Love — ${counts.love}`} aria-pressed={active.love}
         >
           <Heart size={size} filled={active.love} /><span className="text-xs tabular-nums text-paper-ink">{counts.love.toLocaleString()}</span>
         </button>
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); toggle('follow'); }}
-          className="flex items-center gap-1.5 text-brand"
-          data-testid="reaction-follow"
-          aria-label={`Follow — ${counts.follow}`} aria-pressed={active.follow}
-        >
-          <Compass size={size} filled={active.follow} /><span className="text-xs tabular-nums text-paper-ink">{counts.follow.toLocaleString()}</span>
-        </button>
+        {showFollow && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); toggle('follow'); }}
+            className={`flex items-center gap-1.5 ${accentText}`}
+            data-testid="reaction-follow"
+            aria-label={`Follow — ${counts.follow}`} aria-pressed={active.follow}
+          >
+            <Compass size={size} filled={active.follow} /><span className="text-xs tabular-nums text-paper-ink">{counts.follow.toLocaleString()}</span>
+          </button>
+        )}
       </div>
     );
   }
@@ -95,7 +105,7 @@ export function ReactionsStrip({
       <button
         type="button"
         onClick={() => toggle('love')}
-        className={`flex items-center gap-1 transition-colors hover:text-brand ${active.love ? 'text-brand reaction-active' : ''}`}
+        className={`flex items-center gap-1 transition-colors ${accentHover} ${active.love ? `${accentText} reaction-active` : ''}`}
         aria-label={`Love — ${counts.love}`}
         aria-pressed={active.love}
       >
@@ -103,16 +113,18 @@ export function ReactionsStrip({
         <span className="text-xs tabular-nums">{counts.love.toLocaleString()}</span>
       </button>
 
-      <button
-        type="button"
-        onClick={() => toggle('follow')}
-        className={`flex items-center gap-1 transition-colors ${followHover} ${active.follow ? followActive : ''}`}
-        aria-label={`Follow — ${counts.follow}`}
-        aria-pressed={active.follow}
-      >
-        <Compass filled={active.follow} />
-        <span className="text-xs tabular-nums">{counts.follow.toLocaleString()}</span>
-      </button>
+      {showFollow && (
+        <button
+          type="button"
+          onClick={() => toggle('follow')}
+          className={`flex items-center gap-1 transition-colors ${followHover} ${active.follow ? followActive : ''}`}
+          aria-label={`Follow — ${counts.follow}`}
+          aria-pressed={active.follow}
+        >
+          <Compass filled={active.follow} />
+          <span className="text-xs tabular-nums">{counts.follow.toLocaleString()}</span>
+        </button>
+      )}
 
       {shareUrl && (
         <button

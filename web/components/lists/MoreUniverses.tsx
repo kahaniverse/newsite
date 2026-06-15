@@ -1,6 +1,5 @@
 'use client';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AvatarImage } from '@/components/ui/AvatarImage';
@@ -11,35 +10,29 @@ import { useInfiniteUniverses } from '@/hooks/useInfiniteUniverses';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { sampleCover } from '@/lib/sample-images';
 import { GENRE_LABELS } from '@/lib/types';
-import type { Universe, PaginatedResponse } from '@/lib/types';
+import type { Universe } from '@/lib/types';
 
-// Universes beyond the featured ones in the hero carousel. The carousel shows the
-// top-5 featured set; this lists everything else, paged in on scroll so nothing
-// is stranded off-screen. Self-contained: owns its header and hides entirely when
-// there's nothing extra.
+// The full universe catalog, listed below the hero carousel and paged in on
+// scroll. The carousel only *highlights* a rotating featured set (and only one
+// slide at a time); this list is the browsable index of every universe so none
+// are stranded off-screen. It intentionally does NOT subtract the carousel's
+// featured universes — when total universes ≤ the featured count that left the
+// list empty and the whole section vanished. Self-contained: owns its header and
+// hides only when there are genuinely no universes at all.
 export function MoreUniverses() {
   const router = useRouter();
   const { selectionKind, selectedUniverseSlug, selectUniverse, setFocus } = usePanelStore();
-
-  // The featured set is already in the cache (server-hydrated on home); read it
-  // to subtract the carousel's universes from this list. No fetch on a hit.
-  const featuredQ = useQuery<PaginatedResponse<Universe>>({
-    queryKey:  ['universes', 'featured'],
-    queryFn:   () => fetch('/api/universes?featured=true&limit=5').then(r => r.json()),
-    staleTime: 5 * 60 * 1000,
-  });
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteUniverses({ limit: 12 });
 
   const sentinel = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
 
-  const featuredIds = new Set((featuredQ.data?.data ?? []).map(u => u.id));
-  const more = (data?.pages.flatMap(p => p.data) ?? []).filter(u => !featuredIds.has(u.id));
+  const all = data?.pages.flatMap(p => p.data) ?? [];
 
-  // No header flash on first load; nothing to show once there's no overflow.
+  // No header flash on first load; nothing to show once we know there are none.
   if (isLoading) return null;
-  if (!more.length && !hasNextPage) return null;
+  if (!all.length && !hasNextPage) return null;
 
   const open = (u: Universe) => {
     selectUniverse(u.slug, u.id);
@@ -52,10 +45,10 @@ export function MoreUniverses() {
   };
 
   return (
-    <section aria-label="More universes">
-      <SectionHeader title="More Universes" />
+    <section aria-label="All universes">
+      <SectionHeader title="All Universes" />
       <div className="space-y-4">
-        {more.map((u, i) => (
+        {all.map((u, i) => (
           <UniverseTile
             key={u.id}
             universe={u}

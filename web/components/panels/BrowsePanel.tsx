@@ -74,10 +74,10 @@ export function BrowsePanel({ initialUniverses, searchQuery, heroBleed, autoSeed
         </section>
       )}
 
-      {/* More universes — everything beyond the featured carousel. Unlike the
-          author/story feeds above, this stays visible in the horizontal layout
-          so extra universes aren't stranded off the hero carousel. Self-hides
-          when there's no overflow. */}
+      {/* All universes — the full browsable catalog below the carousel (which
+          only highlights a rotating featured set). Unlike the author/story feeds
+          above, this stays visible in the horizontal layout so universes aren't
+          stranded off the hero carousel. Self-hides only when there are none. */}
       <ErrorBoundary>
         <MoreUniverses />
       </ErrorBoundary>
