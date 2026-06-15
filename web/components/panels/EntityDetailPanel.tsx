@@ -24,16 +24,8 @@ export function EntityDetailPanel() {
 
 // ── Universe — just its latest stories ──────────────────────────────
 function UniverseBody() {
-  const { selectedUniverseSlug, selectStory, setFocus } = usePanelStore();
+  const { selectedUniverseSlug } = usePanelStore();
   const { data: universe, isLoading } = useUniverse(selectedUniverseSlug);
-
-  // Picking a story straight from the browse carousel's story list should lock
-  // panel 1 onto this universe's hero (the story already belongs to it) rather
-  // than leave the carousel cycling. The chosen story then drives panel 3.
-  function handleSelect(storyId: string) {
-    selectStory(storyId);
-    setFocus('universe');
-  }
 
   if (!selectedUniverseSlug && !universe) return <FeaturedCarouselPlaceholder />;
   if (isLoading && !universe) return <DetailSkeleton />;
@@ -55,7 +47,9 @@ function UniverseBody() {
           }
         />
         <ErrorBoundary>
-          <StoryList universeId={universe.id} onSelect={s => handleSelect(s.id)} />
+          {/* Default click navigates to /stories/[id]; that route hydrates the
+              cascade (panel-1 hero → beginnings → leaf) and updates the URL. */}
+          <StoryList universeId={universe.id} />
         </ErrorBoundary>
       </section>
     </div>
@@ -64,7 +58,6 @@ function UniverseBody() {
 
 // ── Author — just their authored stories ────────────────────────────
 function AuthorBody({ authorId }: { authorId: string }) {
-  const { selectStory } = usePanelStore();
   const { data: author, isLoading } = useAuthor(authorId);
 
   if (isLoading && !author) return <DetailSkeleton />;
@@ -75,7 +68,7 @@ function AuthorBody({ authorId }: { authorId: string }) {
       <section aria-label={`Stories by ${author.displayName}`}>
         <SectionHeader title="Stories Authored" />
         <ErrorBoundary>
-          <StoryList onSelect={s => selectStory(s.id)} />
+          <StoryList />
         </ErrorBoundary>
       </section>
     </div>

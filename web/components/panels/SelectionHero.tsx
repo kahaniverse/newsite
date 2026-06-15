@@ -18,11 +18,14 @@ export function SelectionHero() {
 
   // Drop the focused takeover (panel 1 → browse list). When we got here via a
   // real entity route (/universes/[slug], /stories/[id], /authors/[id]) rather
-  // than an in-place drill on home, also move the URL back to the browse root so
-  // the address bar matches the view (and a refresh doesn't re-focus the hero).
+  // than an in-place drill on home, pop the history stack so the address bar
+  // matches the view and the back entry isn't left dangling. Fall back to the
+  // browse root when there's no in-app history (e.g. a directly opened deep link).
   function backToBrowse() {
     clearFocus();
-    if (pathname !== '/') router.push('/');
+    if (pathname === '/') return;
+    if (typeof window !== 'undefined' && window.history.length > 1) router.back();
+    else router.push('/');
   }
 
   return (

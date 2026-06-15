@@ -23,7 +23,12 @@ export function useCardGestures({ onTap, onDoubleTap, onSwipeLeft, onSwipeRight 
   const singleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function onPointerDown(e: React.PointerEvent) {
-    const interactive = !!(e.target as HTMLElement).closest('a,button,input,textarea,select,[role="button"]');
+    // Did the press land on a control NESTED inside the card (inner link,
+    // reaction button)? Those handle their own tap. The card's own outer element
+    // is itself role="button", so exclude it — otherwise every tap looks
+    // "interactive" and the card's open action (onTap) never fires.
+    const hit = (e.target as HTMLElement).closest('a,button,input,textarea,select,[role="button"]');
+    const interactive = !!hit && hit !== e.currentTarget;
     start.current = { x: e.clientX, y: e.clientY, interactive };
   }
 
