@@ -64,6 +64,19 @@ export function LayoutSync() {
       }
     };
 
+    // Coalesce a burst of store writes into a single mirror pass against the
+    // SETTLED state. <HydrateSelection> applies a selection in several sequential
+    // writes (selectUniverse → selectStory → setFocus); mirroring each one would
+    // act on an intermediate state (e.g. universe-focused, story not set yet)
+    // whose path differs from the final one, ping-ponging the URL forever. Running
+    // on the next microtask lets the whole sequence finish first.
+    let scheduled = false;
+    const scheduleMirror = () => {
+      if (scheduled) return;
+      scheduled = true;
+      queueMicrotask(() => { scheduled = false; mirrorDeep(); });
+    };
+
     // On an actual collapse to narrow, step out of a stale deep route if the wide
     // layout had drilled back out to browse mode. Safe to bail to '/' here: this
     // only runs on a real breakpoint change, long after hydration, so it can't
@@ -76,10 +89,10 @@ export function LayoutSync() {
         if (target && target !== current) router.replace(target);
       }
       wasWide = isWide;
-      mirrorDeep();
+      scheduleMirror();
     };
 
-    const unsub = usePanelStore.subscribe(mirrorDeep);
+    const unsub = usePanelStore.subscribe(scheduleMirror);
     mq.addEventListener('change', onChange);
     mirrorDeep();
 
