@@ -13,14 +13,23 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-interface Props { editPageId?: string }
+interface Props {
+  editPageId?: string;
+  /** Embedded (third-panel) use overrides the URL search params and the
+   *  default navigate-on-success / navigate-on-cancel behaviour. */
+  storyId?:   string;
+  parentId?:  string;
+  intent?:    'next' | 'alter';
+  onCancel?:  () => void;
+  onCreated?: (page: { id: string }) => void;
+}
 
-export function PageForm({ editPageId }: Props = {}) {
+export function PageForm({ editPageId, storyId: storyIdProp, parentId: parentIdProp, intent: intentProp, onCancel, onCreated }: Props = {}) {
   const router      = useRouter();
   const params      = useSearchParams();
-  const storyId     = params.get('storyId') ?? '';
-  const parentId    = params.get('parentId') ?? '';
-  const intent      = params.get('intent');
+  const storyId     = storyIdProp  ?? params.get('storyId')  ?? '';
+  const parentId    = parentIdProp ?? params.get('parentId') ?? '';
+  const intent      = intentProp   ?? params.get('intent');
   const isEdit      = !!editPageId;
   const isAlternate = intent === 'alter' || (!intent && !!parentId && parentId !== storyId);
   const [serverErr, setServerErr] = useState('');
@@ -54,7 +63,8 @@ export function PageForm({ editPageId }: Props = {}) {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       });
       if (!res.ok) { const j = await res.json().catch(() => ({})); setServerErr(j.error ?? 'Failed to save page.'); setBusy(false); return; }
-      router.push(`/pages/${editPageId}`);
+      if (onCreated) onCreated({ id: editPageId! });
+      else router.push(`/pages/${editPageId}`);
       return;
     }
 
@@ -64,7 +74,8 @@ export function PageForm({ editPageId }: Props = {}) {
     });
     if (!res.ok) { const j = await res.json().catch(() => ({})); setServerErr(j.error ?? 'Failed to add page.'); setBusy(false); setPending(null); return; }
     const page = await res.json();
-    router.push(`/pages/${page.id}`);
+    if (onCreated) onCreated(page);
+    else router.push(`/pages/${page.id}`);
   }
 
   const heading = isEdit ? 'Edit Page' : isAlternate ? 'Add an Alternate Path' : 'Continue the Story';
@@ -110,7 +121,7 @@ export function PageForm({ editPageId }: Props = {}) {
 
           {serverErr && <p className="text-sm text-error">{serverErr}</p>}
 
-          <Actions onCancel={() => router.back()} label={isEdit ? 'Update' : 'Create'} busy={busy || loadingExisting} />
+          <Actions onCancel={onCancel ?? (() => router.back())} label={isEdit ? 'Update' : 'Create'} busy={busy || loadingExisting} />
         </div>
       </form>
 

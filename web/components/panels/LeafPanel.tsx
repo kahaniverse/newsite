@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { PageCard } from '@/components/cards/PageCard';
 import { PageList } from '@/components/lists/PageList';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -13,7 +12,7 @@ import type { Page, Author } from '@/lib/types';
 import { useQuery } from '@tanstack/react-query';
 
 export function LeafPanel() {
-  const { selectedStoryId, selectedPageId, selectPage, setDetailMeta } = usePanelStore();
+  const { selectedStoryId, selectedPageId, selectPage, setDetailMeta, startCompose } = usePanelStore();
   const [page, setPage] = useState<Page | null>(null);
   const [loading, setLoading]   = useState(false);
 
@@ -89,13 +88,14 @@ export function LeafPanel() {
 
       {/* Add page CTA */}
       {!page.disallowNext && (
-        <Link
-          href={`/pages/new?storyId=${page.storyId}&parentId=${page.id}`}
+        <button
+          type="button"
+          onClick={() => startCompose({ kind: 'page', storyId: page.storyId, parentId: page.id, intent: 'next' })}
           className="flex items-center justify-center gap-2 py-3 border border-dashed border-border rounded-card text-sm text-text-muted hover:border-accent hover:text-accent transition-colors"
           aria-label="Continue this story"
         >
           <span aria-hidden>+</span> Continue this story
-        </Link>
+        </button>
       )}
 
       {/* Sibling / alternate pages */}

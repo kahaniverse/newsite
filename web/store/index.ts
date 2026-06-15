@@ -169,6 +169,19 @@ export interface DetailMeta {
   authorId?: string;
 }
 
+// An in-progress create flow surfaced in the horizontal layout's third panel
+// (instead of a modal dialog like the universe form). A story compose carries
+// its parent universe; a page compose carries its story, the parent it branches
+// from, and whether it continues (`next`) or forks (`alter`). Cleared whenever
+// the user changes selection so the form never lingers over a stale context.
+export interface ComposeState {
+  kind:        'story' | 'page';
+  universeId?: string;            // story compose
+  storyId?:    string;            // page compose
+  parentId?:   string;            // page compose
+  intent?:     'next' | 'alter';  // page compose
+}
+
 interface PanelState {
   selectionKind:        SelectionKind;
   selectedUniverseSlug: string | null;
@@ -188,6 +201,9 @@ interface PanelState {
   // (the home carousel) never hijacks panel 1.
   focused:              boolean;
   focusKind:            FocusKind;
+  // The horizontal layout's third-panel create flow (see ComposeState). Null
+  // when the leaf panel is showing its normal content.
+  compose:              ComposeState | null;
   selectUniverse:  (slug: string, id?: string | null) => void;
   selectAuthor:    (id: string)   => void;
   selectStory:     (id: string)   => void;
@@ -197,6 +213,8 @@ interface PanelState {
   setDetailMeta:   (meta: DetailMeta | null) => void;
   setFocus:        (kind: NonNullable<FocusKind>) => void;
   clearFocus:      () => void;
+  startCompose:    (compose: ComposeState) => void;
+  cancelCompose:   () => void;
   toggleLeafMode:  () => void;
 }
 
@@ -211,6 +229,10 @@ export const usePanelStore = create<PanelState>((set) => ({
   leafMode:             'authors',
   focused:              false,
   focusKind:            null,
+  compose:              null,
+  // Selection changes close any open compose form — its captured context (the
+  // universe to write into, the page to branch from) no longer matches what the
+  // panels now show.
   selectUniverse: (slug, id = null) => set({
     selectionKind:        'universe',
     selectedUniverseSlug: slug,
@@ -218,6 +240,7 @@ export const usePanelStore = create<PanelState>((set) => ({
     selectedAuthorId:     null,
     selectedStoryId:      null,
     selectedPageId:       null,
+    compose:              null,
   }),
   selectAuthor:   (id)   => set({
     selectionKind:        'author',
@@ -226,9 +249,10 @@ export const usePanelStore = create<PanelState>((set) => ({
     selectedUniverseId:   null,
     selectedStoryId:      null,
     selectedPageId:       null,
+    compose:              null,
   }),
-  selectStory:    (id)   => set({ selectedStoryId: id, selectedPageId: null }),
-  selectPage:     (id)   => set({ selectedPageId: id }),
+  selectStory:    (id)   => set({ selectedStoryId: id, selectedPageId: null, compose: null }),
+  selectPage:     (id)   => set({ selectedPageId: id, compose: null }),
   clearStory:     ()     => set({ selectedStoryId: null, selectedPageId: null }),
   clearPage:      ()     => set({ selectedPageId: null }),
   setDetailMeta:  (meta) => set({ detailMeta: meta }),
@@ -236,6 +260,8 @@ export const usePanelStore = create<PanelState>((set) => ({
   // "Browse" back / leaving for a browse-root route: drop the takeover AND the
   // story/page drill, so the narrow (route-driven) shell isn't mirrored back to
   // a stale story/page on rotation, and panel 3 doesn't keep a stale leaf.
-  clearFocus:     ()     => set({ focused: false, focusKind: null, selectedStoryId: null, selectedPageId: null }),
+  clearFocus:     ()     => set({ focused: false, focusKind: null, selectedStoryId: null, selectedPageId: null, compose: null }),
+  startCompose:   (compose) => set({ compose }),
+  cancelCompose:  ()     => set({ compose: null }),
   toggleLeafMode: ()     => set(s => ({ leafMode: s.leafMode === 'authors' ? 'notifications' : 'authors' })),
 }));

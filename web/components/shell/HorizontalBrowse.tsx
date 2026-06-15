@@ -5,7 +5,7 @@ import { NavRail } from '@/components/shell/NavRail';
 import { ScrollColumn }      from '@/components/shell/ScrollColumn';
 import { BrowseColumn }      from '@/components/shell/BrowseColumn';
 import { EntityDetailPanel } from '@/components/panels/EntityDetailPanel';
-import { LeafPanel }         from '@/components/panels/LeafPanel';
+import { LeafColumn }        from '@/components/shell/LeafColumn';
 import { ToastContainer } from '@/components/ui/Toast';
 
 interface Props {
@@ -39,10 +39,9 @@ export async function HorizontalBrowse({ session: sessionProp, initialUniverses,
         <EntityDetailPanel />
       </ScrollColumn>
 
-      {/* Panel 3 — linked to the panel-2 selection (desktop only) */}
-      <ScrollColumn label="Page detail" className="hidden lg:block">
-        <LeafPanel />
-      </ScrollColumn>
+      {/* Panel 3 — linked to the panel-2 selection (desktop only), or the inline
+          story/page create form when a compose flow is active */}
+      <LeafColumn />
 
       <ToastContainer />
     </div>

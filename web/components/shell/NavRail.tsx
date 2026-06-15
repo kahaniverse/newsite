@@ -17,17 +17,25 @@ interface Props { session: Session | null }
 export function NavRail({ session }: Props) {
   const pathname = usePathname() ?? '/';
   const router   = useRouter();
-  const { selectedUniverseId, selectedStoryId, detailMeta, clearFocus } = usePanelStore();
+  const { selectedUniverseId, selectedStoryId, detailMeta, clearFocus, startCompose } = usePanelStore();
 
-  // Context-aware create options keyed to the current selection (like the old
-  // app's bottom sheet, now surfaced directly as strip buttons).
+  // Context-aware create options keyed to the current selection: New Story only
+  // when a universe is selected, New Page only when a story is. The universe
+  // form still opens as a modal; story/page forms open inline in the third
+  // panel via the compose flow.
   const onStoryOrPage = pathname.startsWith('/stories/') || pathname.startsWith('/pages/')
                         || !!selectedStoryId;
-  const createActions = buildCreateActions(selectedUniverseId, onStoryOrPage ? selectedStoryId : null);
+  const createActions = buildCreateActions(
+    selectedUniverseId,
+    onStoryOrPage ? selectedStoryId : null,
+    router,
+    startCompose,
+  );
 
   // Context FAB actions surfaced as extra icons in the strip — driven by what
-  // the leaf panel is currently showing (a page → Add Next / Alternate).
-  const fabActions = buildFabActions(detailMeta);
+  // the leaf panel is currently showing (a page → Add Next / Alternate). These
+  // also open inline in the third panel.
+  const fabActions = buildFabActions(detailMeta, startCompose);
 
   return (
     <nav
@@ -49,9 +57,9 @@ export function NavRail({ session }: Props) {
           Rendered as plain strip icons, matching the nav links above. */}
       {createActions.map(a => (
         <button
-          key={a.href}
+          key={a.label}
           type="button"
-          onClick={() => router.push(a.href)}
+          onClick={a.run}
           aria-label={a.label}
           title={a.label}
           className="w-10 h-10 rounded-lg flex items-center justify-center text-lg text-text-muted hover:text-accent hover:bg-bg-elevated/60 active:scale-95 transition-colors"
@@ -63,9 +71,9 @@ export function NavRail({ session }: Props) {
       {/* Context FAB actions as additional strip icons. */}
       {fabActions.map(a => (
         <button
-          key={a.href}
+          key={a.label}
           type="button"
-          onClick={() => router.push(a.href)}
+          onClick={a.run}
           aria-label={a.label}
           title={a.label}
           className="w-10 h-10 rounded-lg flex items-center justify-center text-text-muted hover:text-accent hover:bg-bg-elevated/60 active:scale-95 transition-colors"
@@ -94,13 +102,26 @@ export function NavRail({ session }: Props) {
   );
 }
 
+type CreateAction = { label: string; icon: string; run: () => void };
+
 // The old create bottom-sheet's items, context-keyed to the current selection,
-// now rendered inline in the strip.
-function buildCreateActions(universeId: string | null, storyId: string | null) {
+// now rendered inline in the strip. New Universe still routes to its modal;
+// New Story / New Page open the inline compose form in the third panel and only
+// appear once their parent (universe / story) is selected.
+function buildCreateActions(
+  universeId:   string | null,
+  storyId:      string | null,
+  router:       ReturnType<typeof useRouter>,
+  startCompose: ReturnType<typeof usePanelStore.getState>['startCompose'],
+): CreateAction[] {
   return [
-    { label: 'New Universe', icon: '🌌', href: '/universes/new' },
-    ...(universeId ? [{ label: 'New Story', icon: '📖', href: `/stories/new?universeId=${universeId}` }] : []),
-    ...(storyId    ? [{ label: 'New Page',  icon: '📝', href: `/pages/new?storyId=${storyId}&parentId=${storyId}&intent=next` }] : []),
+    { label: 'New Universe', icon: '🌌', run: () => router.push('/universes/new') },
+    ...(universeId
+      ? [{ label: 'New Story', icon: '📖', run: () => startCompose({ kind: 'story', universeId }) }]
+      : []),
+    ...(storyId
+      ? [{ label: 'New Page', icon: '📝', run: () => startCompose({ kind: 'page', storyId, parentId: storyId, intent: 'next' as const }) }]
+      : []),
   ];
 }
 
@@ -121,18 +142,25 @@ function RailLink({ href, label, active, glyph, onClick }: { href: string; label
   );
 }
 
-function buildFabActions(detailMeta: ReturnType<typeof usePanelStore.getState>['detailMeta']) {
+type FabAction = { label: string; icon: 'next' | 'alternate' | 'edit'; run: () => void };
+
+function buildFabActions(
+  detailMeta:   ReturnType<typeof usePanelStore.getState>['detailMeta'],
+  startCompose: ReturnType<typeof usePanelStore.getState>['startCompose'],
+): FabAction[] {
   if (!detailMeta) return [];
   if (detailMeta.kind === 'page' && detailMeta.pageId && detailMeta.storyId) {
-    const altParent = detailMeta.parentId ?? detailMeta.storyId;
+    const { storyId, pageId } = detailMeta;
+    const altParent = detailMeta.parentId ?? storyId;
     return [
-      { label: 'Add next page', icon: 'next' as const,      href: `/pages/new?storyId=${detailMeta.storyId}&parentId=${detailMeta.pageId}&intent=next` },
-      { label: 'Alternate page', icon: 'alternate' as const, href: `/pages/new?storyId=${detailMeta.storyId}&parentId=${altParent}&intent=alter` },
+      { label: 'Add next page',  icon: 'next',      run: () => startCompose({ kind: 'page', storyId, parentId: pageId,    intent: 'next' }) },
+      { label: 'Alternate page', icon: 'alternate', run: () => startCompose({ kind: 'page', storyId, parentId: altParent, intent: 'alter' }) },
     ];
   }
   if (detailMeta.kind === 'story' && detailMeta.storyId) {
+    const { storyId } = detailMeta;
     return [
-      { label: 'Add a page', icon: 'edit' as const, href: `/pages/new?storyId=${detailMeta.storyId}&parentId=${detailMeta.storyId}&intent=next` },
+      { label: 'Add a page', icon: 'edit', run: () => startCompose({ kind: 'page', storyId, parentId: storyId, intent: 'next' }) },
     ];
   }
   return [];

@@ -18,10 +18,18 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-export function StoryForm() {
+interface Props {
+  /** Embedded (third-panel) use overrides the URL search params and the
+   *  default navigate-on-success / navigate-on-cancel behaviour. */
+  universeId?: string;
+  onCancel?:   () => void;
+  onCreated?:  (story: { id: string }) => void;
+}
+
+export function StoryForm({ universeId: universeIdProp, onCancel, onCreated }: Props = {}) {
   const router      = useRouter();
   const params      = useSearchParams();
-  const universeId  = params.get('universeId') ?? '';
+  const universeId  = universeIdProp ?? params.get('universeId') ?? '';
   const [serverErr, setServerErr] = useState('');
   const [pending, setPending] = useState<FormData | null>(null);
   const [busy, setBusy] = useState(false);
@@ -49,7 +57,8 @@ export function StoryForm() {
       return;
     }
     const story = await res.json();
-    router.push(`/stories/${story.id}`);
+    if (onCreated) onCreated(story);
+    else router.push(`/stories/${story.id}`);
   }
 
   return (
@@ -93,7 +102,7 @@ export function StoryForm() {
 
           {serverErr && <p className="text-sm text-error">{serverErr}</p>}
 
-          <Actions onCancel={() => router.back()} label="Create" />
+          <Actions onCancel={onCancel ?? (() => router.back())} label="Create" busy={busy} />
         </div>
       </form>
 

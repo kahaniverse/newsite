@@ -1,5 +1,4 @@
 'use client';
-import Link from 'next/link';
 import { StoryList } from '@/components/lists/StoryList';
 import { PageList } from '@/components/lists/PageList';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -24,7 +23,7 @@ export function EntityDetailPanel() {
 
 // ── Universe — just its latest stories ──────────────────────────────
 function UniverseBody() {
-  const { selectedUniverseSlug } = usePanelStore();
+  const { selectedUniverseSlug, startCompose } = usePanelStore();
   const { data: universe, isLoading } = useUniverse(selectedUniverseSlug);
 
   if (!selectedUniverseSlug && !universe) return <FeaturedCarouselPlaceholder />;
@@ -37,13 +36,14 @@ function UniverseBody() {
         <SectionHeader
           title="Latest Stories"
           action={
-            <Link
-              href={`/stories/new?universeId=${universe.id}`}
+            <button
+              type="button"
+              onClick={() => startCompose({ kind: 'story', universeId: universe.id })}
               className="text-xs text-accent hover:underline font-medium"
               aria-label="Write a new story in this universe"
             >
               + Write story
-            </Link>
+            </button>
           }
         />
         <ErrorBoundary>
