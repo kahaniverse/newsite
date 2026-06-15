@@ -17,7 +17,7 @@ interface Props { session: Session | null }
 export function NavRail({ session }: Props) {
   const pathname = usePathname() ?? '/';
   const router   = useRouter();
-  const { selectedUniverseId, selectedStoryId, detailMeta } = usePanelStore();
+  const { selectedUniverseId, selectedStoryId, detailMeta, clearFocus } = usePanelStore();
 
   // Context-aware create options keyed to the current selection (like the old
   // app's bottom sheet, now surfaced directly as strip buttons).
@@ -38,7 +38,10 @@ export function NavRail({ session }: Props) {
         <Image src="/images/logo.png" alt="" width={32} height={32} className="rounded" priority />
       </Link>
 
-      <RailLink href="/" label="Home" active={pathname === '/'} glyph="🏠" />
+      {/* Home also resets the horizontal cascade to browse mode. On the home
+          route the URL is already "/" when drilled into a universe, so a plain
+          Link is a no-op navigation and the focused hero would otherwise stick. */}
+      <RailLink href="/" label="Home" active={pathname === '/'} glyph="🏠" onClick={clearFocus} />
 
       <div className="w-7 h-px bg-border my-1.5" aria-hidden />
 
@@ -101,10 +104,11 @@ function buildCreateActions(universeId: string | null, storyId: string | null) {
   ];
 }
 
-function RailLink({ href, label, active, glyph }: { href: string; label: string; active: boolean; glyph: string }) {
+function RailLink({ href, label, active, glyph, onClick }: { href: string; label: string; active: boolean; glyph: string; onClick?: () => void }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       aria-label={label}
       aria-current={active ? 'page' : undefined}
       title={label}

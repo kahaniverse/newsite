@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { HeroBlock } from '@/components/screens/HeroBlock';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { usePanelStore } from '@/store';
@@ -12,12 +13,23 @@ import { GENRE_LABELS } from '@/lib/types';
 // repeating this hero. Horizontal layout only.
 export function SelectionHero() {
   const { focusKind, selectedUniverseSlug, selectedAuthorId, selectedStoryId, clearFocus } = usePanelStore();
+  const router   = useRouter();
+  const pathname = usePathname() ?? '/';
+
+  // Drop the focused takeover (panel 1 → browse list). When we got here via a
+  // real entity route (/universes/[slug], /stories/[id], /authors/[id]) rather
+  // than an in-place drill on home, also move the URL back to the browse root so
+  // the address bar matches the view (and a refresh doesn't re-focus the hero).
+  function backToBrowse() {
+    clearFocus();
+    if (pathname !== '/') router.push('/');
+  }
 
   return (
     <div className="flex flex-col gap-4 panel-enter">
       <button
         type="button"
-        onClick={clearFocus}
+        onClick={backToBrowse}
         className="self-start inline-flex items-center gap-1 text-sm text-accent hover:brightness-110 transition"
         aria-label="Back to browse"
       >
