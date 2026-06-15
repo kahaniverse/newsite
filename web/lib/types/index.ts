@@ -31,11 +31,12 @@ export interface AuthorSummary {
 }
 
 export interface Author extends AuthorSummary {
-  bio?:        string;
-  followCount: number;
-  loveCount:   number;
-  tier:        AuthorTier;
-  createdAt:   string;
+  bio?:          string;
+  followCount:   number;
+  loveCount:     number;
+  tier:          AuthorTier;
+  emailVerified: boolean;
+  createdAt:     string;
 }
 
 export interface Universe {

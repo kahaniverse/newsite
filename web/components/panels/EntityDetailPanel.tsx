@@ -23,7 +23,7 @@ export function EntityDetailPanel() {
 
 // ── Universe — just its latest stories ──────────────────────────────
 function UniverseBody() {
-  const { selectedUniverseSlug, startCompose } = usePanelStore();
+  const { selectedUniverseSlug, startCompose, focused } = usePanelStore();
   const { data: universe, isLoading } = useUniverse(selectedUniverseSlug);
 
   if (!selectedUniverseSlug && !universe) return <FeaturedCarouselPlaceholder />;
@@ -35,15 +35,20 @@ function UniverseBody() {
       <section aria-label={`Stories in ${universe.name}`}>
         <SectionHeader
           title="Latest Stories"
+          // Only offer "Write story" once the universe is actually chosen
+          // (focused) — matching the NavRail gate. The home carousel passively
+          // seeds this panel with a universe the user hasn't deliberately picked.
           action={
-            <button
-              type="button"
-              onClick={() => startCompose({ kind: 'story', universeId: universe.id })}
-              className="text-xs text-accent hover:underline font-medium"
-              aria-label="Write a new story in this universe"
-            >
-              + Write story
-            </button>
+            focused ? (
+              <button
+                type="button"
+                onClick={() => startCompose({ kind: 'story', universeId: universe.id })}
+                className="text-xs text-accent hover:underline font-medium"
+                aria-label="Write a new story in this universe"
+              >
+                + Write story
+              </button>
+            ) : undefined
           }
         />
         <ErrorBoundary>

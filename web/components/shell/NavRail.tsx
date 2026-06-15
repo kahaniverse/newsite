@@ -17,16 +17,22 @@ interface Props { session: Session | null }
 export function NavRail({ session }: Props) {
   const pathname = usePathname() ?? '/';
   const router   = useRouter();
-  const { selectedUniverseId, selectedStoryId, detailMeta, clearFocus, startCompose } = usePanelStore();
+  const { selectedUniverseId, selectedStoryId, detailMeta, clearFocus, startCompose, focused } = usePanelStore();
 
   // Context-aware create options keyed to the current selection: New Story only
-  // when a universe is selected, New Page only when a story is. The universe
-  // form still opens as a modal; story/page forms open inline in the third
-  // panel via the compose flow.
+  // when a universe is actively chosen, New Page only when a story is. The
+  // universe form still opens as a modal; story/page forms open inline in the
+  // third panel via the compose flow.
+  //
+  // Gate New Story on `focused`, not just `selectedUniverseId`: the home
+  // carousel passively seeds a universe selection (so panel 2 lists its stories)
+  // without focusing it. That seed is not a deliberate choice, so New Story must
+  // stay hidden until the user actually drills into a universe (or a story under
+  // one), which sets `focused`.
   const onStoryOrPage = pathname.startsWith('/stories/') || pathname.startsWith('/pages/')
                         || !!selectedStoryId;
   const createActions = buildCreateActions(
-    selectedUniverseId,
+    focused ? selectedUniverseId : null,
     onStoryOrPage ? selectedStoryId : null,
     router,
     startCompose,

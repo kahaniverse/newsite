@@ -6,6 +6,7 @@ export const TTL = {
   authorProfile:     600,   // 10 min
   reactionLock:      1,     // 1 s
   passwordReset:     900,   // 15 min
+  emailVerify:       86400, // 24 h
 } as const;
 
 export async function getCache<T>(key: string): Promise<T | null> {
@@ -56,4 +57,5 @@ export const CacheKeys = {
   reactionLock:    (uid: string, type: string, tid: string) =>
                     `lock:reaction:${uid}:${type}:${tid}`,
   passwordReset:   (hash: string) => `pwreset:${hash}`,
+  emailVerify:     (hash: string) => `emailverify:${hash}`,
 };

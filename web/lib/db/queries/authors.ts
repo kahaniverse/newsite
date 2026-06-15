@@ -11,6 +11,7 @@ function rowToAuthor(row: Record<string, unknown>): Author {
     followCount: Number(row.follow_count),
     loveCount:   Number(row.love_count),
     tier:        (row.tier as AuthorTier | undefined) ?? 'reader',
+    emailVerified: row.email_verified === true,
     createdAt:   (row.created_at as Date).toISOString(),
   };
 }
