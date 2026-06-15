@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
+import { put } from '@vercel/blob';
 import { writeFile, mkdir } from 'fs/promises';
 import { join, dirname, extname } from 'path';
 import { randomBytes } from 'crypto';
@@ -20,26 +20,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   return uploadToLocalDisk(req, session.user.id);
 }
 
+// Production: the client POSTs the raw file binary (same contract as the dev
+// path) with ?filename=&contentType=. We stream it straight to Vercel Blob via
+// a server-side put() and return the public URL.
 async function uploadViaVercelBlob(req: NextRequest, userId: string): Promise<NextResponse> {
-  const body = (await req.json()) as HandleUploadBody;
+  const sp          = req.nextUrl.searchParams;
+  const filename    = sp.get('filename')    ?? 'upload.bin';
+  const contentType = sp.get('contentType') ?? req.headers.get('content-type') ?? 'application/octet-stream';
+
+  if (!ALLOWED_TYPES.includes(contentType)) {
+    return NextResponse.json({ error: 'Disallowed content type', code: 'VALIDATION' }, { status: 400 });
+  }
+
+  const buf = Buffer.from(await req.arrayBuffer());
+  if (buf.byteLength > MAX_BYTES) {
+    return NextResponse.json({ error: 'File too large', code: 'TOO_LARGE' }, { status: 413 });
+  }
+
+  const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const key  = `${userId}/${safe}`;
+
   try {
-    const json = await handleUpload({
-      body,
-      request: req,
-      onBeforeGenerateToken: async (pathname) => {
-        const safe = pathname.replace(/[^a-zA-Z0-9._/-]/g, '_');
-        return {
-          allowedContentTypes: ALLOWED_TYPES,
-          maximumSizeInBytes:  MAX_BYTES,
-          addRandomSuffix:     true,
-          tokenPayload:        JSON.stringify({ userId, requested: safe }),
-        };
-      },
-      onUploadCompleted: async () => {
-        // no-op; the client receives the final URL directly
-      },
+    const blob = await put(key, buf, {
+      access:          'public',
+      contentType,
+      addRandomSuffix: true,
     });
-    return NextResponse.json(json);
+    return NextResponse.json({ url: blob.url, uploadUrl: blob.url });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Upload failed';
     return NextResponse.json({ error: msg, code: 'UPLOAD_ERROR' }, { status: 400 });
