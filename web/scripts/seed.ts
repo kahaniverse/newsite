@@ -1,6 +1,7 @@
 import './_load-env';
 import { neon } from '@neondatabase/serverless';
 import { configureNeonForLocalDev } from '../lib/db/configure-neon';
+import { STORY_CONCEPT_CONTENT } from '../lib/db/queries/pages';
 
 const SYSTEM_AUTHOR_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -124,9 +125,7 @@ async function seed() {
     // author adds the first beginning.
     await sql`
       INSERT INTO pages (story_id, parent_id, content, author_id)
-      VALUES (${storyId}, NULL,
-              ${`The concept for "${s.title}". No pages yet — add the first page to begin this story.`},
-              ${authorId})
+      VALUES (${storyId}, NULL, ${STORY_CONCEPT_CONTENT}, ${authorId})
       ON CONFLICT DO NOTHING
     `;
 

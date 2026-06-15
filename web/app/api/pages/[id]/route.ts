@@ -9,6 +9,9 @@ const UpdateSchema = z.object({
   illustration: z.string().url().optional(),
 });
 
+// Reaction counts and content change per request; never serve a cached page.
+export const dynamic = 'force-dynamic';
+
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const page = await getPageById(params.id);
   if (!page) return NextResponse.json({ error: 'Not found', code: 'NOT_FOUND' }, { status: 404 });

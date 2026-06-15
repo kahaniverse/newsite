@@ -3,6 +3,12 @@ import { Page } from '@/lib/types';
 import { isUuid } from '@/lib/db/parse';
 import { promoteTier } from '@/lib/db/queries/authors';
 
+// Content of a story's page-0 "concept" root — the structural anchor whose
+// children are the Beginnings (page 1). Used by createPage (synthetic root),
+// the seed script, and the 006 backfill migration as the marker that a root is
+// already a concept (so the migration is idempotent). Keep these three in sync.
+export const STORY_CONCEPT_CONTENT = '(Story concept — add pages to begin this story.)';
+
 function rowToPage(row: Record<string, unknown>, children: Page[] = []): Page {
   return {
     id:                row.id as string,
@@ -143,8 +149,7 @@ export async function createPage(data: {
       // story's page_count), then hang this first authored page off it.
       const created = await sql`
         INSERT INTO pages (story_id, parent_id, content, author_id)
-        VALUES (${data.storyId}, NULL,
-                '(Story concept — add pages to begin this story.)', ${data.authorId})
+        VALUES (${data.storyId}, NULL, ${STORY_CONCEPT_CONTENT}, ${data.authorId})
         RETURNING id
       `;
       parent = created[0].id as string;
