@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { requireAuth } from '@/lib/auth/helpers';
 import { checkRateLimit, rateLimitIdentity } from '@/lib/redis/ratelimit';
 import { getStories, createStory } from '@/lib/db/queries/stories';
+import { notifyNewStory } from '@/lib/db/queries/notifications';
 
 const GENRES = [
   'fantasy','scienceFiction','romance','thriller',
@@ -50,6 +51,8 @@ export async function POST(req: NextRequest) {
   try {
     const story = await createStory({ ...parsed.data, creatorId: session!.user.id });
     revalidateTag('stories');
+    // Notify followers of the universe and of the author (best-effort).
+    try { await notifyNewStory(session!.user.id, story.id, parsed.data.universeId, story.title); } catch {}
     return NextResponse.json(story, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'Failed to create', code: 'DB_ERROR' }, { status: 500 });

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { requireAuth } from '@/lib/auth/helpers';
 import { checkRateLimit, rateLimitIdentity } from '@/lib/redis/ratelimit';
 import { createPage } from '@/lib/db/queries/pages';
+import { notifyNewPage } from '@/lib/db/queries/notifications';
 
 const CreateSchema = z.object({
   storyId:      z.string().uuid(),
@@ -24,6 +25,8 @@ export async function POST(req: NextRequest) {
 
   try {
     const page = await createPage({ ...parsed.data, authorId: session!.user.id });
+    // Notify followers of the story this page belongs to (best-effort).
+    try { await notifyNewPage(session!.user.id, page.id, parsed.data.storyId, page.content.slice(0, 80)); } catch {}
     return NextResponse.json(page, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'Failed to create', code: 'DB_ERROR' }, { status: 500 });

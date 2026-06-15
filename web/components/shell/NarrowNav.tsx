@@ -6,6 +6,7 @@ import type { Session } from 'next-auth';
 import { usePathname, useRouter } from 'next/navigation';
 import { usePanelStore } from '@/store';
 import { CreateSheet } from '@/components/shell/CreateSheet';
+import { NotificationBell } from '@/components/shell/NotificationBell';
 import { AvatarImage } from '@/components/ui/AvatarImage';
 
 interface Props {
@@ -89,9 +90,10 @@ function TopHeader({ isRoot, session, title, subtitle, onBack }: {
         </div>
       )}
 
-      {/* Right: discover + avatar (opens drawer) / sign-in */}
+      {/* Right: discover + notifications + avatar (opens drawer) / sign-in */}
       <div className="flex items-center gap-3 z-10">
         <Link href="/discover" className="text-lg text-text-muted hover:text-accent transition-colors" aria-label="Discover">🔍</Link>
+        {session && <NotificationBell variant="header" />}
         {session
           ? (
             <Link

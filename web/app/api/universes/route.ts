@@ -9,6 +9,7 @@ import {
   getUniverses, createUniverse, getUniverseCount,
   getFeaturedUniverses, FEATURED_LIMIT,
 } from '@/lib/db/queries/universes';
+import { notifyNewUniverse } from '@/lib/db/queries/notifications';
 
 const GENRES = [
   'fantasy','scienceFiction','romance','thriller',
@@ -80,6 +81,8 @@ export async function POST(req: NextRequest) {
     });
     await invalidateCache([CacheKeys.featuredUniverses()]);
     revalidateTag('universes');
+    // Notify followers of the creator (best-effort).
+    try { await notifyNewUniverse(session!.user.id, universe.id, universe.slug, universe.name); } catch {}
     return NextResponse.json(universe, { status: 201 });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error';

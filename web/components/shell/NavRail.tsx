@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import type { Session } from 'next-auth';
 import { usePanelStore } from '@/store';
 import { FabIcon } from '@/components/shell/Fab';
+import { NotificationBell } from '@/components/shell/NotificationBell';
 import { AvatarImage } from '@/components/ui/AvatarImage';
 
 interface Props { session: Session | null }
@@ -41,6 +42,7 @@ export function NavRail({ session }: Props) {
       <RailLink href="/"         label="Home"     active={pathname === '/'}                glyph="🏠" />
       <RailLink href="/discover" label="Discover" active={pathname.startsWith('/discover')} glyph="🔍" />
       <RailLink href="/authors"  label="Authors"  active={pathname.startsWith('/authors')}  glyph="👥" />
+      {session && <NotificationBell variant="rail" />}
 
       <div className="w-7 h-px bg-border my-1.5" aria-hidden />
 

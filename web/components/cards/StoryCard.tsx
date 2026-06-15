@@ -1,6 +1,8 @@
+'use client';
 import Link from 'next/link';
 import { AvatarImage } from '@/components/ui/AvatarImage';
 import { ReactionsStrip } from '@/components/ui/ReactionsStrip';
+import { useReactionGestures } from '@/hooks/useReactionGestures';
 import { sampleCover } from '@/lib/sample-images';
 import type { Story } from '@/lib/types';
 
@@ -18,6 +20,9 @@ export function StoryCard({ story, onClick, compact = false, selected = false, i
   const even   = index % 2 === 0;
   const cover  = story.coverImage || sampleCover(story.id, 480, 360);
 
+  // Double-tap = love, swipe right/left = follow/unfollow, single tap = open.
+  const gestures = useReactionGestures(story.id, 'story', { onTap: onClick, label: story.title, canFollow: true });
+
   const image = !compact && (
     <div className="flex-1 min-w-0">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -32,10 +37,10 @@ export function StoryCard({ story, onClick, compact = false, selected = false, i
 
   return (
     <article
-      className={`paper-card overflow-hidden cursor-pointer transition-shadow ${
+      className={`paper-card overflow-hidden cursor-pointer transition-shadow touch-pan-y select-none ${
         selected ? 'ring-2 ring-brand shadow-[0_2px_10px_rgba(0,0,0,0.45)]' : 'hover:shadow-[0_2px_10px_rgba(0,0,0,0.45)]'
       }`}
-      onClick={onClick}
+      {...gestures}
       role="button"
       tabIndex={0}
       onKeyDown={e => e.key === 'Enter' && onClick?.()}

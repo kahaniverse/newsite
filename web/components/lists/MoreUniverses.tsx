@@ -5,6 +5,7 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { AvatarImage } from '@/components/ui/AvatarImage';
 import { ReactionsStrip } from '@/components/ui/ReactionsStrip';
 import { CardSkeleton } from '@/components/ui/Skeleton';
+import { useReactionGestures } from '@/hooks/useReactionGestures';
 import { usePanelStore } from '@/store';
 import { useInfiniteUniverses } from '@/hooks/useInfiniteUniverses';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
@@ -77,6 +78,9 @@ function UniverseTile({ universe, index, selected, onClick }: TileProps) {
   const even  = index % 2 === 0;
   const cover = universe.coverImage || sampleCover(universe.id, 480, 360);
 
+  // Double-tap = love, swipe right/left = follow/unfollow, single tap = open.
+  const gestures = useReactionGestures(universe.id, 'universe', { onTap: onClick, label: universe.name, canFollow: true });
+
   const image = (
     <div className="flex-1 min-w-0">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -92,10 +96,10 @@ function UniverseTile({ universe, index, selected, onClick }: TileProps) {
   return (
     <article
       role="button"
-      className={`paper-card overflow-hidden cursor-pointer transition-shadow ${
+      className={`paper-card overflow-hidden cursor-pointer transition-shadow touch-pan-y select-none ${
         selected ? 'ring-2 ring-brand shadow-[0_2px_10px_rgba(0,0,0,0.45)]' : 'hover:shadow-[0_2px_10px_rgba(0,0,0,0.45)]'
       }`}
-      onClick={onClick}
+      {...gestures}
       tabIndex={0}
       onKeyDown={e => e.key === 'Enter' && onClick()}
       aria-label={`Universe: ${universe.name}`}
