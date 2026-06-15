@@ -6,6 +6,9 @@ import type { Session } from 'next-auth';
 import { usePanelStore } from '@/store';
 import { FabIcon } from '@/components/shell/Fab';
 import { AvatarImage } from '@/components/ui/AvatarImage';
+import { useStoryPages } from '@/hooks/useStoryPages';
+import { buildPageNav } from '@/lib/page-nav';
+import type { Page } from '@/lib/types';
 
 interface Props { session: Session | null }
 
@@ -19,29 +22,22 @@ export function NavRail({ session }: Props) {
   const router   = useRouter();
   const { selectedUniverseId, selectedStoryId, detailMeta, clearFocus, startCompose, focused } = usePanelStore();
 
-  // Context-aware create options keyed to the current selection: New Story only
-  // when a universe is actively chosen, New Page only when a story is. The
-  // universe form still opens as a modal; story/page forms open inline in the
-  // third panel via the compose flow.
-  //
-  // Gate New Story on `focused`, not just `selectedUniverseId`: the home
-  // carousel passively seeds a universe selection (so panel 2 lists its stories)
-  // without focusing it. That seed is not a deliberate choice, so New Story must
-  // stay hidden until the user actually drills into a universe (or a story under
-  // one), which sets `focused`.
-  const onStoryOrPage = pathname.startsWith('/stories/') || pathname.startsWith('/pages/')
-                        || !!selectedStoryId;
-  const createActions = buildCreateActions(
-    focused ? selectedUniverseId : null,
-    onStoryOrPage ? selectedStoryId : null,
-    router,
-    startCompose,
-  );
+  // The story's page tree drives page numbering + which add-page actions apply.
+  const { data: pagesData } = useStoryPages(selectedStoryId);
+  const pages = pagesData?.data ?? [];
 
-  // Context FAB actions surfaced as extra icons in the strip — driven by what
-  // the leaf panel is currently showing (a page → Add Next / Alternate). These
-  // also open inline in the third panel.
-  const fabActions = buildFabActions(detailMeta, startCompose);
+  // Universe / story creation. New Story is gated on `focused`, not just
+  // `selectedUniverseId`: the home carousel passively seeds a universe selection
+  // (so panel 2 lists its stories) without focusing it. That seed is not a
+  // deliberate choice, so New Story stays hidden until the user actually drills
+  // into a universe (or a story under one), which sets `focused`. The universe
+  // form still opens as a modal; the story form opens inline in the third panel.
+  const createActions = buildCreateActions(focused ? selectedUniverseId : null, router, startCompose);
+
+  // Page creation, numbered and context-aware (see buildPageActions): a generic
+  // "Add page N" that appends after the last page, plus — when a page is
+  // selected — "add after this page" / "add alternate" relative to it.
+  const pageActions = buildPageActions(selectedStoryId, detailMeta, pages, startCompose);
 
   return (
     <nav
@@ -74,10 +70,11 @@ export function NavRail({ session }: Props) {
         </button>
       ))}
 
-      {/* Context FAB actions as additional strip icons. */}
-      {fabActions.map(a => (
+      {/* Page-create actions as additional strip icons, each tooltip naming the
+          page number it will add. */}
+      {pageActions.map(a => (
         <button
-          key={a.label}
+          key={a.key}
           type="button"
           onClick={a.run}
           aria-label={a.label}
@@ -110,13 +107,11 @@ export function NavRail({ session }: Props) {
 
 type CreateAction = { label: string; icon: string; run: () => void };
 
-// The old create bottom-sheet's items, context-keyed to the current selection,
-// now rendered inline in the strip. New Universe still routes to its modal;
-// New Story / New Page open the inline compose form in the third panel and only
-// appear once their parent (universe / story) is selected.
+// Universe / story creation. New Universe still routes to its modal; New Story
+// opens the inline compose form in the third panel and only appears once a
+// universe is the active (focused) selection.
 function buildCreateActions(
   universeId:   string | null,
-  storyId:      string | null,
   router:       ReturnType<typeof useRouter>,
   startCompose: ReturnType<typeof usePanelStore.getState>['startCompose'],
 ): CreateAction[] {
@@ -124,9 +119,6 @@ function buildCreateActions(
     { label: 'New Universe', icon: '🌌', run: () => router.push('/universes/new') },
     ...(universeId
       ? [{ label: 'New Story', icon: '📖', run: () => startCompose({ kind: 'story', universeId }) }]
-      : []),
-    ...(storyId
-      ? [{ label: 'New Page', icon: '📝', run: () => startCompose({ kind: 'page', storyId, parentId: storyId, intent: 'next' as const }) }]
       : []),
   ];
 }
@@ -148,26 +140,58 @@ function RailLink({ href, label, active, glyph, onClick }: { href: string; label
   );
 }
 
-type FabAction = { label: string; icon: 'next' | 'alternate' | 'edit'; run: () => void };
+type PageAction = { key: string; label: string; icon: 'next' | 'alternate' | 'plus'; run: () => void };
 
-function buildFabActions(
+// Numbered, context-aware page-create actions:
+//  • "Add page N" — appends after the story's last main-line page. Hidden when
+//    the selected page IS that last page, since its own "add after this page"
+//    already appends to the end (the two would be identical).
+//  • When a page is selected: "Add page M+1 after page M" (continue) and
+//    "Add alternate to page M" (branch a sibling), each respecting the page's
+//    disallowNext / disallowAlternate flags.
+function buildPageActions(
+  storyId:      string | null,
   detailMeta:   ReturnType<typeof usePanelStore.getState>['detailMeta'],
+  pages:        Page[],
   startCompose: ReturnType<typeof usePanelStore.getState>['startCompose'],
-): FabAction[] {
-  if (!detailMeta) return [];
-  if (detailMeta.kind === 'page' && detailMeta.pageId && detailMeta.storyId) {
-    const { storyId, pageId } = detailMeta;
-    const altParent = detailMeta.parentId ?? storyId;
-    return [
-      { label: 'Add next page',  icon: 'next',      run: () => startCompose({ kind: 'page', storyId, parentId: pageId,    intent: 'next' }) },
-      { label: 'Alternate page', icon: 'alternate', run: () => startCompose({ kind: 'page', storyId, parentId: altParent, intent: 'alter' }) },
-    ];
+): PageAction[] {
+  if (!storyId) return [];
+  const nav = buildPageNav(pages);
+  const actions: PageAction[] = [];
+
+  const selPageId = detailMeta?.kind === 'page' ? detailMeta.pageId ?? null : null;
+  const selPage   = selPageId ? pages.find(p => p.id === selPageId) ?? null : null;
+  const selNum    = selPage ? nav.numberOf(selPage.id) : 0;
+
+  // Generic append — redundant when the selected page is already the last page.
+  if (!(selPage && nav.isLast(selPage.id))) {
+    const parentId = nav.lastPageId ?? storyId; // empty story → sentinel creates the root
+    actions.push({
+      key:   'append',
+      label: `Add page ${nav.lastNumber + 1}`,
+      icon:  'plus',
+      run:   () => startCompose({ kind: 'page', storyId, parentId, intent: 'next' }),
+    });
   }
-  if (detailMeta.kind === 'story' && detailMeta.storyId) {
-    const { storyId } = detailMeta;
-    return [
-      { label: 'Add a page', icon: 'edit', run: () => startCompose({ kind: 'page', storyId, parentId: storyId, intent: 'next' }) },
-    ];
+
+  if (selPage) {
+    if (!selPage.disallowNext) {
+      actions.push({
+        key:   'next',
+        label: `Add page ${selNum + 1} after page ${selNum}`,
+        icon:  'next',
+        run:   () => startCompose({ kind: 'page', storyId, parentId: selPage.id, intent: 'next' }),
+      });
+    }
+    if (!selPage.disallowAlternate) {
+      actions.push({
+        key:   'alternate',
+        label: `Add alternate to page ${selNum}`,
+        icon:  'alternate',
+        run:   () => startCompose({ kind: 'page', storyId, parentId: selPage.parentId ?? storyId, intent: 'alter' }),
+      });
+    }
   }
-  return [];
+
+  return actions;
 }

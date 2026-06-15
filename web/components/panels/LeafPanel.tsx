@@ -10,11 +10,17 @@ import { NotificationList } from '@/components/lists/NotificationList';
 import { usePanelStore } from '@/store';
 import type { Page, Author } from '@/lib/types';
 import { useQuery } from '@tanstack/react-query';
+import { useStoryPages } from '@/hooks/useStoryPages';
+import { buildPageNav } from '@/lib/page-nav';
 
 export function LeafPanel() {
   const { selectedStoryId, selectedPageId, selectPage, setDetailMeta, startCompose } = usePanelStore();
   const [page, setPage] = useState<Page | null>(null);
   const [loading, setLoading]   = useState(false);
+
+  // Page numbering for the "continue" CTA — derived from the story's page tree.
+  const { data: storyPages } = useStoryPages(selectedStoryId);
+  const nav = buildPageNav(storyPages?.data ?? []);
 
   // Fetch root pages of story when story selected but no page yet
   const [rootPage, setRootPage] = useState<Page | null>(null);
@@ -86,17 +92,21 @@ export function LeafPanel() {
         <PageCard page={page} />
       </ErrorBoundary>
 
-      {/* Add page CTA */}
-      {!page.disallowNext && (
-        <button
-          type="button"
-          onClick={() => startCompose({ kind: 'page', storyId: page.storyId, parentId: page.id, intent: 'next' })}
-          className="flex items-center justify-center gap-2 py-3 border border-dashed border-border rounded-card text-sm text-text-muted hover:border-accent hover:text-accent transition-colors"
-          aria-label="Continue this story"
-        >
-          <span aria-hidden>+</span> Continue this story
-        </button>
-      )}
+      {/* Add page CTA — names the page number it will create. */}
+      {!page.disallowNext && (() => {
+        const num = nav.numberOf(page.id); // 0 until the page tree loads
+        const label = num ? `Continue this story — add page ${num + 1}` : 'Continue this story';
+        return (
+          <button
+            type="button"
+            onClick={() => startCompose({ kind: 'page', storyId: page.storyId, parentId: page.id, intent: 'next' })}
+            className="flex items-center justify-center gap-2 py-3 border border-dashed border-border rounded-card text-sm text-text-muted hover:border-accent hover:text-accent transition-colors"
+            aria-label={label}
+          >
+            <span aria-hidden>+</span> {label}
+          </button>
+        );
+      })()}
 
       {/* Sibling / alternate pages */}
       {!page.disallowAlternate && siblings.length > 0 && (
