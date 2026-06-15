@@ -5,6 +5,9 @@ import Credentials from 'next-auth/providers/credentials';
 import { getAuthorByAuthId, createAuthor, verifyPassword } from '@/lib/db/queries/authors';
 import { verifyTurnstile } from '@/lib/auth/turnstile';
 import { DEMO_MODE, DEMO_AUTHOR_AUTH_ID } from '@/lib/auth/demo';
+import { redis } from '@/lib/redis/client';
+import { CacheKeys } from '@/lib/redis/cache';
+import { createHash } from 'crypto';
 import { z } from 'zod';
 
 
@@ -12,7 +15,26 @@ const credentialsSchema = z.object({
   email:        z.string().email(),
   password:     z.string().min(8),
   captchaToken: z.string().optional(),
+  signinToken:  z.string().optional(),
 });
+
+// One-time auto-login grant minted by /api/auth/register. If it matches the
+// email (single-use — deleted on redemption), the just-registered user skips
+// the captcha for this immediate sign-in. Returns false on any mismatch or if
+// Redis is unreachable, so the caller falls back to the normal captcha check.
+async function consumeSignupGrant(token: string | undefined, email: string): Promise<boolean> {
+  if (!token) return false;
+  try {
+    const hash   = createHash('sha256').update(token).digest('hex');
+    const key    = CacheKeys.signupSignin(hash);
+    const stored = await redis.get<string>(key);
+    if (stored !== email.toLowerCase()) return false;
+    await redis.del(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   // JWT sessions: required for Credentials provider in NextAuth v5.
@@ -33,13 +55,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email:        { label: 'Email',    type: 'email' },
         password:     { label: 'Password', type: 'password' },
         captchaToken: { label: 'Captcha',  type: 'text' },
+        signinToken:  { label: 'Signup',   type: 'text' },
       },
       async authorize(credentials) {
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const ok = await verifyTurnstile(parsed.data.captchaToken);
-        if (!ok) return null;
+        // A valid one-time signup grant stands in for the captcha (signup
+        // already passed Turnstile); otherwise require a fresh captcha.
+        const granted = await consumeSignupGrant(parsed.data.signinToken, parsed.data.email);
+        if (!granted) {
+          const ok = await verifyTurnstile(parsed.data.captchaToken);
+          if (!ok) return null;
+        }
 
         const author = await verifyPassword(parsed.data.email, parsed.data.password);
         if (!author) return null;

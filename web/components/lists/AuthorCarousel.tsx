@@ -1,5 +1,6 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { SquareCard } from '@/components/cards/SquareCard';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { usePanelStore } from '@/store';
@@ -9,6 +10,17 @@ interface Props { initialAuthors?: Author[] }
 
 export function AuthorCarousel({ initialAuthors }: Props) {
   const { selectionKind, selectedAuthorId, selectAuthor } = usePanelStore();
+  const router = useRouter();
+
+  // Mirror the story feed: update the store for the wide/medium detail panel,
+  // but on narrow viewports there is no detail panel, so stack the author
+  // profile by routing to its dedicated page.
+  function handleSelect(id: string) {
+    selectAuthor(id);
+    if (typeof window !== 'undefined' && !window.matchMedia('(min-width: 768px)').matches) {
+      router.push(`/authors/${id}`);
+    }
+  }
 
   const { data, isLoading } = useQuery<PaginatedResponse<Author>>({
     queryKey: ['authors', 'top'],
@@ -41,7 +53,7 @@ export function AuthorCarousel({ initialAuthors }: Props) {
         <div key={a.id} role="listitem" className="snap-start shrink-0">
           <SquareCard
             author={a}
-            onClick={() => selectAuthor(a.id)}
+            onClick={() => handleSelect(a.id)}
             selected={selectionKind === 'author' && selectedAuthorId === a.id}
           />
         </div>

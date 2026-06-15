@@ -43,14 +43,17 @@ export function RegisterForm() {
         captchaToken: captchaToken ?? '',
       }),
     });
+    const json = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const json = await res.json().catch(() => ({}));
       setServerErr(json.error ?? 'Registration failed. Try again.');
       return;
     }
+    // Use the one-time grant from registration, NOT the captcha token — Turnstile
+    // tokens are single-use and the one above was already spent by /register, so
+    // reusing it would make this auto-login fail (and force a manual login).
     await signIn('credentials', {
       email: data.email, password: data.password,
-      captchaToken: captchaToken ?? '',
+      signinToken: json.signinToken ?? '',
       redirect: false,
     });
     router.push('/');

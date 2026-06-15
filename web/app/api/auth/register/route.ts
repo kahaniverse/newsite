@@ -58,7 +58,25 @@ export async function POST(req: NextRequest) {
     console.error('[register] verification email failed (non-fatal):', err),
   );
 
-  return NextResponse.json({ ok: true }, { status: 201 });
+  // Mint a one-time grant the client immediately redeems via signIn('credentials')
+  // so the just-registered user lands logged in WITHOUT a second captcha. The
+  // signup already passed Turnstile above, and Turnstile tokens are single-use —
+  // reusing the same token for the auto-login would be rejected by Cloudflare.
+  // authorize() still verifies the password, so this only substitutes for the
+  // captcha. Best-effort: if Redis is down the client falls back to a normal login.
+  const signinToken = await mintSigninGrant(email).catch(err => {
+    console.error('[register] signin grant failed (non-fatal):', err);
+    return undefined;
+  });
+
+  return NextResponse.json({ ok: true, signinToken }, { status: 201 });
+}
+
+async function mintSigninGrant(email: string): Promise<string> {
+  const token = randomBytes(32).toString('hex');
+  const hash  = createHash('sha256').update(token).digest('hex');
+  await redis.setex(CacheKeys.signupSignin(hash), TTL.signupSignin, email.toLowerCase());
+  return token;
 }
 
 async function sendVerificationEmail(authorId: string, email: string, displayName: string) {
