@@ -1,2 +1,3 @@
 node_modules/**/*
 kahaniapp
+web/.env.vercel.prod

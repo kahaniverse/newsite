@@ -28,31 +28,41 @@ test('following an author from the list increments the count and toggles state',
   const page = await ctx.newPage();
   try {
     await loginViaApi(ctx, ALICE);
-    await page.goto('/authors');
 
-    const followBtn = page.getByTestId('author-follow').first();
-    await followBtn.waitFor();
-    const countText = () => page.getByText(/followers/i).first().innerText();
-    const num = async () => parseInt((await countText()).replace(/[^0-9]/g, ''), 10);
+    // The list orders by follow_count desc; Alice (0 followers) is last, so the
+    // top author from the API == the first card. Verify the count authoritatively
+    // via the API (the DOM count briefly flashes 0 before the store seeds).
+    const authors = async () => (await (await ctx.request.get('/api/authors?page=1&limit=40')).json()).data;
+    const targetId: string = (await authors())[0].id;
+    const followCount = async () => (await authors()).find((a: { id: string }) => a.id === targetId).followCount as number;
+    const iFollow = async () => {
+      const { states } = await (await ctx.request.get(`/api/reactions?targetIds=${targetId}`)).json();
+      return !!states.find((s: { targetId: string }) => s.targetId === targetId)?.myFollow;
+    };
 
-    // Normalize to "not following" so the run is deterministic.
-    if ((await followBtn.getAttribute('aria-pressed')) === 'true') {
-      await followBtn.click();
-      await expect(followBtn).toHaveAttribute('aria-pressed', 'false');
+    // Normalize to "not following".
+    if (await iFollow()) {
+      await ctx.request.post('/api/reactions', { data: { type: 'follow', targetType: 'author', targetId } });
     }
-    await expect(followBtn).toHaveText(/^follow$/i);
-    const before = await num();
+    const before = await followCount();
 
-    // Follow → state flips to "Following" (colour change) and the count goes up 1.
+    await page.goto('/authors');
+    const followBtn = page.getByTestId('author-follow').first();
+    await expect(followBtn).toHaveText(/^follow$/i);
+
+    // Follow → button flips to the "Following" state (colour change).
+    await followBtn.scrollIntoViewIfNeeded();
     await followBtn.click();
     await expect(followBtn).toHaveAttribute('aria-pressed', 'true');
     await expect(followBtn).toHaveText(/following/i);
-    expect(await num()).toBe(before + 1);
+    // The count incremented by exactly 1 (authoritative).
+    await expect.poll(followCount).toBe(before + 1);
+    expect(await iFollow()).toBe(true);
 
-    // Unfollow → back to baseline (also leaves the dev data clean).
-    await followBtn.click();
-    await expect(followBtn).toHaveAttribute('aria-pressed', 'false');
-    expect(await num()).toBe(before);
+    // Cleanup via API (past the 1s dedup lock) so dev data stays at baseline.
+    await page.waitForTimeout(1100);
+    await ctx.request.post('/api/reactions', { data: { type: 'follow', targetType: 'author', targetId } });
+    await expect.poll(followCount).toBe(before);
   } finally {
     await ctx.close();
   }
