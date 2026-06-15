@@ -7,6 +7,7 @@ import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { SlimList } from '@/components/lists/SlimList';
+import { NotificationList } from '@/components/lists/NotificationList';
 import { usePanelStore } from '@/store';
 import type { Page, Author } from '@/lib/types';
 import { useQuery } from '@tanstack/react-query';
@@ -62,8 +63,8 @@ export function LeafPanel() {
       .finally(() => setLoading(false));
   }, [selectedPageId]);
 
-  // Show suggested authors when nothing selected
-  if (!selectedStoryId) return <SuggestedList />;
+  // Show suggested authors / notifications when nothing is drilled in
+  if (!selectedStoryId) return <DefaultLeaf />;
 
   if (loading) {
     return (
@@ -110,18 +111,56 @@ export function LeafPanel() {
   );
 }
 
-function SuggestedList() {
-  const { data } = useQuery<{ data: Author[] }>({
+// The third panel's default content: "Authors to follow" or the viewer's
+// notifications, switched by the bell at the top-right. The bell toggles to a
+// people glyph while notifications are showing, mirroring the active view.
+function DefaultLeaf() {
+  const { leafMode, toggleLeafMode } = usePanelStore();
+  const showNotifications = leafMode === 'notifications';
+
+  const { data: authorsData } = useQuery<{ data: Author[] }>({
     queryKey: ['authors', 'suggested'],
     queryFn:  () => fetch('/api/authors?limit=10').then(r => r.json()),
     staleTime: 10 * 60 * 1000,
+    enabled:  !showNotifications,
   });
+
+  // Unread count for the bell badge while the authors view is showing.
+  const { data: notif } = useQuery<{ unread: number }>({
+    queryKey: ['notifications', 'unread'],
+    queryFn:  () => fetch('/api/notifications').then(r => (r.ok ? r.json() : { unread: 0 })),
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+  });
+  const unread = notif?.unread ?? 0;
+
+  const toggle = (
+    <button
+      type="button"
+      onClick={toggleLeafMode}
+      aria-label={showNotifications ? 'Show authors to follow' : 'Show notifications'}
+      title={showNotifications ? 'Authors' : 'Notifications'}
+      className="relative w-9 h-9 rounded-lg flex items-center justify-center text-lg text-text-muted hover:text-accent hover:bg-bg-elevated/60 transition-colors"
+    >
+      <span aria-hidden>{showNotifications ? '👥' : '🔔'}</span>
+      {!showNotifications && unread > 0 && (
+        <span
+          className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-brand text-white text-[10px] font-bold leading-4 text-center"
+          aria-hidden
+        >
+          {unread > 9 ? '9+' : unread}
+        </span>
+      )}
+    </button>
+  );
 
   return (
     <div className="flex flex-col gap-4 p-2">
-      <SectionHeader title="Authors to follow" />
+      <SectionHeader title={showNotifications ? 'Notifications' : 'Authors to follow'} action={toggle} />
       <ErrorBoundary>
-        <SlimList authors={data?.data ?? []} />
+        {showNotifications
+          ? <NotificationList />
+          : <SlimList authors={authorsData?.data ?? []} />}
       </ErrorBoundary>
     </div>
   );

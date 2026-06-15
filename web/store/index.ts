@@ -177,6 +177,10 @@ interface PanelState {
   selectedStoryId:      string | null;
   selectedPageId:       string | null;
   detailMeta:           DetailMeta | null;
+  // What the horizontal layout's third (leaf) panel shows in its default state
+  // (nothing drilled in): the "Authors to follow" suggestions or the viewer's
+  // notifications. Toggled from the bell at the top-right of that panel.
+  leafMode:             'authors' | 'notifications';
   // Horizontal focused-takeover state (see FocusKind). `focused` toggles panel 1
   // between the browse list and the selected entity's hero. `focusKind` says
   // which entity that hero is. Selection actions are deliberately focus-agnostic;
@@ -193,6 +197,7 @@ interface PanelState {
   setDetailMeta:   (meta: DetailMeta | null) => void;
   setFocus:        (kind: NonNullable<FocusKind>) => void;
   clearFocus:      () => void;
+  toggleLeafMode:  () => void;
 }
 
 export const usePanelStore = create<PanelState>((set) => ({
@@ -203,6 +208,7 @@ export const usePanelStore = create<PanelState>((set) => ({
   selectedStoryId:      null,
   selectedPageId:       null,
   detailMeta:           null,
+  leafMode:             'authors',
   focused:              false,
   focusKind:            null,
   selectUniverse: (slug, id = null) => set({
@@ -231,4 +237,5 @@ export const usePanelStore = create<PanelState>((set) => ({
   // story/page drill, so the narrow (route-driven) shell isn't mirrored back to
   // a stale story/page on rotation, and panel 3 doesn't keep a stale leaf.
   clearFocus:     ()     => set({ focused: false, focusKind: null, selectedStoryId: null, selectedPageId: null }),
+  toggleLeafMode: ()     => set(s => ({ leafMode: s.leafMode === 'authors' ? 'notifications' : 'authors' })),
 }));

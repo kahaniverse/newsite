@@ -20,12 +20,17 @@ import type { Universe } from '@/lib/types';
 // featured universes — when total universes ≤ the featured count that left the
 // list empty and the whole section vanished. Self-contained: owns its header and
 // hides only when there are genuinely no universes at all.
-export function MoreUniverses() {
+interface MoreUniversesProps {
+  /** Filter the catalog by a search query (universe name / concept). */
+  q?: string;
+}
+
+export function MoreUniverses({ q }: MoreUniversesProps = {}) {
   const router = useRouter();
   const { selectionKind, selectedUniverseSlug, selectUniverse, setFocus } = usePanelStore();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useInfiniteUniverses({ limit: 12 });
+    useInfiniteUniverses({ q, limit: 12 });
 
   const sentinel = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
 
@@ -33,7 +38,19 @@ export function MoreUniverses() {
 
   // No header flash on first load; nothing to show once we know there are none.
   if (isLoading) return null;
-  if (!all.length && !hasNextPage) return null;
+  if (!all.length && !hasNextPage) {
+    // While searching, say so rather than vanishing — an empty silent panel
+    // reads as broken.
+    if (q) {
+      return (
+        <section aria-label="All universes">
+          <SectionHeader title="All Universes" />
+          <p className="text-center text-text-muted py-8 text-sm">No universes match “{q}”.</p>
+        </section>
+      );
+    }
+    return null;
+  }
 
   const open = (u: Universe) => {
     selectUniverse(u.slug, u.id);

@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { HeroCarousel } from '@/components/lists/HeroCarousel';
 import { AuthorCarousel } from '@/components/lists/AuthorCarousel';
@@ -29,6 +30,12 @@ export function BrowsePanel({ initialUniverses, searchQuery, heroBleed, autoSeed
   const { selectUniverse, selectStory } = usePanelStore();
   const router = useRouter();
 
+  // The horizontal home panel owns its own search bar (the standalone Discover
+  // route is gone); other usages still take a query via the searchQuery prop.
+  const [input, setInput] = useState('');
+  const [query, setQuery] = useState('');
+  const effectiveQuery = horizontal ? (query || undefined) : searchQuery;
+
   // Only used by the narrow story feed below; the horizontal layout has none.
   function handleStorySelect(story: Story) {
     selectUniverse(story.universe.slug, story.universe.id);
@@ -42,6 +49,29 @@ export function BrowsePanel({ initialUniverses, searchQuery, heroBleed, autoSeed
 
   return (
     <div className="flex flex-col gap-6 pb-24 px-1">
+      {/* Search — lives at the top of the home panel in the horizontal layout */}
+      {horizontal && (
+        <div className="relative">
+          <input
+            type="search"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && setQuery(input)}
+            placeholder="Search universes…"
+            className="w-full bg-bg-elevated border border-border rounded-input px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent pr-10"
+            aria-label="Search"
+          />
+          <button
+            type="button"
+            onClick={() => setQuery(input)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-accent transition-colors"
+            aria-label="Search"
+          >
+            🔍
+          </button>
+        </div>
+      )}
+
       {/* Universe Carousel — bleeds up behind the translucent nav on home */}
       <section
         aria-label="Universe carousel"
@@ -69,7 +99,7 @@ export function BrowsePanel({ initialUniverses, searchQuery, heroBleed, autoSeed
         <section aria-label="Story feed">
           <SectionHeader title="Latest Stories" />
           <ErrorBoundary>
-            <StoryList q={searchQuery} onSelect={handleStorySelect} />
+            <StoryList q={effectiveQuery} onSelect={handleStorySelect} />
           </ErrorBoundary>
         </section>
       )}
@@ -79,7 +109,7 @@ export function BrowsePanel({ initialUniverses, searchQuery, heroBleed, autoSeed
           above, this stays visible in the horizontal layout so universes aren't
           stranded off the hero carousel. Self-hides only when there are none. */}
       <ErrorBoundary>
-        <MoreUniverses />
+        <MoreUniverses q={effectiveQuery} />
       </ErrorBoundary>
     </div>
   );
