@@ -12,6 +12,10 @@ import { ViewTracker }     from '@/components/ui/ViewTracker';
 import { getUniverseBySlug } from '@/lib/db/queries/universes';
 import { GENRE_LABELS } from '@/lib/types';
 
+// Render per request so reaction counts (denormalized columns, mutated by likes/
+// views) are always current — otherwise Next's Data Cache serves a stale count.
+export const dynamic = 'force-dynamic';
+
 interface Props { params: { slug: string } }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

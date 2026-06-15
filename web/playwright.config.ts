@@ -10,22 +10,25 @@ export default defineConfig({
   workers:        1,
   retries:        0,
   reporter:       [['list']],
-  timeout:        45_000,
-  expect:         { timeout: 10_000 },
+  // Timeouts are generous because `next dev` compiles routes on first hit; the
+  // globalSetup warms them, but leave headroom for cold runs / slow machines.
+  timeout:        120_000,
+  expect:         { timeout: 15_000 },
+  globalSetup:    './tests/e2e/global-setup.ts',
 
   use: {
     baseURL:           'http://localhost:3000',
     trace:             'on-first-retry',
     screenshot:        'only-on-failure',
-    actionTimeout:     10_000,
-    navigationTimeout: 30_000,
+    actionTimeout:     30_000,
+    navigationTimeout: 60_000,
   },
 
   webServer: {
     command:              'npm run dev',
     url:                  'http://localhost:3000',
     reuseExistingServer:  !process.env.CI,
-    timeout:              120_000,
+    timeout:              180_000,
     env: {
       NODE_ENV: 'development',
     },

@@ -84,7 +84,7 @@ describe('queries/reactions', () => {
     expect(list).toEqual([{ targetId: universe.id, type: 'love' }]);
   });
 
-  it('getReactionState returns counts and the viewer\'s own state from one source — a lit glyph is always counted', async () => {
+  it('getReactionState returns only the viewer\'s own love/follow flags (not counts)', async () => {
     const me       = await makeAuthor();
     const other    = await makeAuthor();
     const creator  = await makeAuthor();
@@ -94,17 +94,16 @@ describe('queries/reactions', () => {
     await toggleReaction(other.id, 'love',   'universe', universe.id);
     await toggleReaction(me.id,    'follow', 'universe', universe.id);
 
-    const [mine] = await getReactionState(me.id, [universe.id]);
-    expect(mine).toMatchObject({ targetId: universe.id, love: 2, follow: 1, myLove: true, myFollow: true });
-    // Invariant behind the "red icon, count 0" bug: if I lit it, it's counted.
-    expect(mine.love).toBeGreaterThanOrEqual(1);
+    // "Mine" reflects only my rows — other users' reactions don't set my flags.
+    expect(await getReactionState(me.id, [universe.id])).toEqual([
+      { targetId: universe.id, myLove: true, myFollow: true },
+    ]);
+    expect(await getReactionState(other.id, [universe.id])).toEqual([
+      { targetId: universe.id, myLove: true, myFollow: false },
+    ]);
 
-    // A different viewer sees the same counts but not "mine".
-    const [theirs] = await getReactionState(other.id, [universe.id]);
-    expect(theirs).toMatchObject({ love: 2, follow: 1, myLove: true, myFollow: false });
-
-    // A target with no reactions is simply absent (caller fills zeroes).
-    const empty = await getReactionState(me.id, ['00000000-0000-0000-0000-0000000000ff']);
-    expect(empty).toEqual([]);
+    // A viewer who hasn't reacted gets nothing back for that target.
+    const bystander = await makeAuthor();
+    expect(await getReactionState(bystander.id, [universe.id])).toEqual([]);
   });
 });

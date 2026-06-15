@@ -12,21 +12,16 @@ interface ReactionState {
   initCounts: (
     targetId: string,
     counts: ReactionCounts,
-    active?: Partial<Record<ReactionKind, boolean>>,
+    opts?: { authoritative?: boolean },
   ) => void;
   isActive: (targetId: string, type: ReactionKind) => boolean;
   applyToggle: (targetId: string, type: ReactionKind, nextActive: boolean) => void;
-  // Seed authoritative reaction state from the server (counts + whether the
-  // viewer reacted), so the filled love/connect glyphs AND the counts are
-  // consistent on every view of the same entity and never show a stale count.
-  // Love/follow are authoritative here; the view count is preserved from the seed
-  // so a freshly-recorded view isn't stomped by a hydration response.
+  // Restore the viewer's own love/follow flags from the server (the red/active
+  // glyph). Counts are NOT touched here — they come from the denormalized columns
+  // via initCounts. Skips targets the viewer has toggled this session so an
+  // in-flight optimistic toggle isn't reverted by a stale server response.
   hydrateState: (
-    entries: Array<{
-      targetId: string;
-      love: number; follow: number; view: number;
-      myLove: boolean; myFollow: boolean;
-    }>,
+    entries: Array<{ targetId: string; myLove: boolean; myFollow: boolean }>,
   ) => void;
   // Optimistically reflect the viewer's own unique view of an item. Order-
   // independent: if the target isn't seeded yet, the bump is queued and applied
@@ -53,19 +48,25 @@ export const useReactionStore = create<ReactionState>((set, get) => ({
   counts: {},
   active: {},
 
-  // Seed-if-absent: the first value the store learns for a target (here, the
-  // SSR/list prop) wins as the initial paint, but a later, possibly-stale prop on
-  // a remount or back-navigation must NEVER overwrite what the store already knows
-  // (a hydration result or the viewer's own toggle). That's what keeps a reaction
-  // visible across every screen, including back navigation.
-  initCounts(targetId, counts, active) {
+  // Seed-if-absent by default: the first value the store learns for a target
+  // wins, so a later possibly-stale prop on a remount / back-navigation can't
+  // overwrite what the store already knows. EXCEPTION: a detail hero passes
+  // `authoritative` — its count comes from the per-request (force-dynamic) SSR
+  // read, which is the freshest source, so it overrides a stale value a
+  // background list card may have seeded first. Never overrides a target the
+  // viewer has optimistically toggled (their in-flight value is the truth until
+  // the POST settles), and never lowers the view count below what's recorded.
+  initCounts(targetId, counts, opts) {
     set(state => {
-      if (state.counts[targetId]) return state; // already known — don't clobber
+      const known = state.counts[targetId];
+      const authoritative = !!opts?.authoritative && !touched.has(targetId);
+      if (known && !authoritative) return state; // seed-if-absent
       let view = counts.view;
       if (pendingViews.has(targetId)) { view += 1; pendingViews.delete(targetId); }
+      if (known) view = Math.max(view, known.view); // keep an optimistic/recorded view
       return {
-        counts: { ...state.counts, [targetId]: { ...counts, view } },
-        active: { ...state.active, [targetId]: { ...ZERO_ACTIVE, ...(active ?? {}) } },
+        counts: { ...state.counts, [targetId]: { love: counts.love, follow: counts.follow, view } },
+        active: { ...state.active, [targetId]: state.active[targetId] ?? { ...ZERO_ACTIVE } },
       };
     });
   },
@@ -76,17 +77,12 @@ export const useReactionStore = create<ReactionState>((set, get) => ({
 
   hydrateState(entries) {
     set(state => {
-      const counts = { ...state.counts };
       const active = { ...state.active };
       for (const e of entries) {
         if (touched.has(e.targetId)) continue; // don't clobber an in-flight optimistic toggle
-        // Love/follow are authoritative from the server; keep the seeded/optimistic
-        // view count (views can't drift, and this avoids stomping a fresh view).
-        const prevView = state.counts[e.targetId]?.view ?? e.view;
-        counts[e.targetId] = { love: e.love, follow: e.follow, view: prevView };
         active[e.targetId] = { ...ZERO_ACTIVE, love: e.myLove, follow: e.myFollow };
       }
-      return { counts, active };
+      return { active };
     });
   },
 

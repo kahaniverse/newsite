@@ -34,7 +34,9 @@ test.describe('content flow', () => {
     // Read it back in the browser — the story page is a NarrowShell that renders
     // at desktop width, so the synopsis should be visible.
     await page.goto(`/stories/${story.id}`);
-    await expect(page.getByText(synopsis)).toBeVisible();
+    // The responsive shell renders the hero in both the horizontal and narrow
+    // layouts (one is display:hidden at any width), so scope to the first match.
+    await expect(page.getByText(synopsis).first()).toBeVisible();
     await expect(page.getByText(`Reader Tale ${tag}`).first()).toBeVisible();
   });
 

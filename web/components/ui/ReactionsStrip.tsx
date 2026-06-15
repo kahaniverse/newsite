@@ -22,20 +22,26 @@ interface Props {
    * space-between, with red eye/heart/compass glyphs and ink counts.
    */
   block?:      boolean;
+  /**
+   * The detail hero for the focused entity. Its count is the freshest source
+   * (per-request SSR), so it overrides a stale value a background list card may
+   * have seeded for the same entity. Cards leave this false (seed-if-absent).
+   */
+  authoritative?: boolean;
 }
 
 export function ReactionsStrip({
-  targetId, targetType, loveCount, followCount, viewCount = 0, shareUrl, tone = 'ink', block = false,
+  targetId, targetType, loveCount, followCount, viewCount = 0, shareUrl, tone = 'ink', block = false, authoritative = false,
 }: Props) {
   const { counts, active, toggle, initCounts } = useReactions(targetId, targetType);
   const pushToast = useToastStore(s => s.push);
 
   useEffect(() => {
-    initCounts(targetId, { love: loveCount, follow: followCount, view: viewCount });
+    initCounts(targetId, { love: loveCount, follow: followCount, view: viewCount }, { authoritative });
     // Restore whether *this viewer* has loved/connected, so the filled state is
     // consistent everywhere this entity appears (card, list, detail header).
     hydrateReactions(targetId);
-  }, [targetId, loveCount, followCount, viewCount]); // eslint-disable-line
+  }, [targetId, loveCount, followCount, viewCount, authoritative]); // eslint-disable-line
 
   async function handleShare() {
     const url = shareUrl ?? window.location.href;

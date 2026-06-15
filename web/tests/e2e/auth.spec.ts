@@ -3,10 +3,10 @@ import { test, expect, registerNewUser, signIn, randomTag } from './fixtures';
 test.describe('auth', () => {
   test('register → land on home as signed-in user', async ({ page }) => {
     const user = await registerNewUser(page);
-    // After registration, the sign-out menu should be reachable.
     await expect(page).toHaveURL('http://localhost:3000/');
-    // The avatar menu is rendered with aria-label="User menu" by NavUserMenu.
-    await expect(page.getByLabel('User menu')).toBeVisible();
+    // Signed-in nav exposes authoring affordances and drops the "Sign In" link.
+    await expect(page.getByRole('link', { name: /sign in/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /new story|new universe/i }).first()).toBeVisible();
     expect(user.email).toContain('@');
   });
 
@@ -23,12 +23,14 @@ test.describe('auth', () => {
     const tag = randomTag();
     const { email, password } = await registerNewUser(page, tag);
 
-    await page.getByLabel('User menu').click();
+    // Sign-out lives in ProfileActions on the profile screen. Signed-out home
+    // redirects to the static landing, so assert the signed-out nav, not a URL.
+    await page.goto('/profile');
     await page.getByRole('button', { name: /sign out/i }).click();
-    await page.waitForURL('http://localhost:3000/');
+    await expect(page.getByRole('link', { name: /sign in/i }).first()).toBeVisible();
 
     await signIn(page, email, password);
-    await expect(page.getByLabel('User menu')).toBeVisible();
+    await expect(page.getByRole('link', { name: /sign in/i })).toHaveCount(0);
   });
 
   test('forgot-password flow accepts any email and returns ok (no enumeration)', async ({ page }) => {

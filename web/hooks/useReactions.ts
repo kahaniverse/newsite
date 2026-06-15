@@ -6,6 +6,9 @@ type Kind = 'love' | 'follow';
 
 export function useReactions(targetId: string, targetType: TargetType) {
   const counts      = useReactionStore(s => s.counts[targetId] ?? { love: 0, follow: 0, view: 0 });
+  // Subscribe to this target's active flags so the filled glyph re-renders when
+  // hydration restores the viewer's state (which changes `active`, not `counts`).
+  const activeState = useReactionStore(s => s.active[targetId]);
   const applyToggle = useReactionStore(s => s.applyToggle);
   const isActive    = useReactionStore(s => s.isActive);
   const initCounts  = useReactionStore(s => s.initCounts);
@@ -48,8 +51,8 @@ export function useReactions(targetId: string, targetType: TargetType) {
   }
 
   const active = {
-    love:   isActive(targetId, 'love'),
-    follow: isActive(targetId, 'follow'),
+    love:   !!activeState?.love,
+    follow: !!activeState?.follow,
   };
 
   return { counts, active, toggle, initCounts };

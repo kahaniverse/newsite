@@ -1,8 +1,33 @@
 // Shared E2E helpers — keep them small so individual specs read top-down.
-import { test as base, expect, type Page } from '@playwright/test';
+import { test as base, expect, type Page, type BrowserContext } from '@playwright/test';
 
 export const test = base.extend({});
 export { expect };
+
+// Deterministic, UI-free auth: register (idempotent) then complete the NextAuth
+// credentials flow over REST so the session cookie lands in this context's jar —
+// every page in the context is then signed in. Avoids the flaky cold-start of the
+// browser register/sign-in form. Returns the author id. Use a fresh context per
+// user to keep their sessions isolated.
+export async function loginViaApi(
+  context: BrowserContext,
+  user: { displayName: string; email: string; password: string },
+): Promise<string> {
+  const reg = await context.request.post('/api/auth/register', {
+    data: { displayName: user.displayName, email: user.email, password: user.password },
+  });
+  // 201 = created, 409 = already exists from a previous run — both are fine.
+  expect([201, 409]).toContain(reg.status());
+
+  const csrf = (await (await context.request.get('/api/auth/csrf')).json()).csrfToken as string;
+  await context.request.post('/api/auth/callback/credentials', {
+    form: { csrfToken: csrf, email: user.email, password: user.password, callbackUrl: 'http://localhost:3000/', json: 'true' },
+  });
+
+  const session = await (await context.request.get('/api/auth/session')).json();
+  expect(session?.user?.id, `sign-in failed for ${user.email}`).toBeTruthy();
+  return session.user.id as string;
+}
 
 // Random suffix per worker so reruns don't trip duplicate-email/pen-name guards.
 export function randomTag(): string {

@@ -57,7 +57,8 @@ export function HeroBlock({
 
       {reactions && (
         <div className="px-3 py-2 bg-bg-card border-t border-border">
-          <ReactionsStrip {...reactions} tone="light" />
+          {/* The focused-entity hero owns the freshest count for this target. */}
+          <ReactionsStrip {...reactions} tone="light" authoritative />
         </div>
       )}
     </section>

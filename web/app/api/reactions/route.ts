@@ -47,10 +47,10 @@ async function handle(req: NextRequest, method: 'POST' | 'DELETE') {
 export const POST   = (req: NextRequest) => handle(req, 'POST');
 export const DELETE = (req: NextRequest) => handle(req, 'DELETE');
 
-// Authoritative reaction state for a set of targets: live counts plus whether the
-// current viewer reacted. The client hydrates BOTH from this single source, so the
-// filled glyph and the count can't diverge and aren't subject to a stale cached
-// count. Anonymous callers still get accurate counts (just no "mine" flags).
+// Returns whether the current viewer has loved/followed each target, so the client
+// can restore the red/active glyph everywhere the entity appears. Counts are NOT
+// returned — those come from the denormalized columns (the SSR/list prop). An
+// anonymous caller matches no reactor rows, so it gets an empty list.
 const UUID_RE   = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ANON_UUID = '00000000-0000-0000-0000-000000000000'; // matches no reactor
 

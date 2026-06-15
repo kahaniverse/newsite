@@ -11,6 +11,10 @@ import { getPageById } from '@/lib/db/queries/pages';
 import { getStoryById } from '@/lib/db/queries/stories';
 import { dummyPage }   from '@/lib/sample-content';
 
+// Render per request so reaction counts (denormalized columns, mutated by likes/
+// views) are always current — otherwise Next's Data Cache serves a stale count.
+export const dynamic = 'force-dynamic';
+
 interface Props { params: { id: string } }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
