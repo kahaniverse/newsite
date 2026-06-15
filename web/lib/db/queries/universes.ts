@@ -2,6 +2,7 @@ import { sql } from '@/lib/db/client';
 import { Genre, Universe } from '@/lib/types';
 import { parsePgTextArray } from '@/lib/db/parse';
 import { getCache, setCache, TTL, CacheKeys } from '@/lib/redis/cache';
+import { promoteTier } from '@/lib/db/queries/authors';
 
 function rowToUniverse(row: Record<string, unknown>): Universe {
   return {
@@ -137,6 +138,8 @@ export async function createUniverse(data: {
     SELECT ins.*, a.display_name AS creator_name, a.avatar_image AS creator_avatar
     FROM ins JOIN authors a ON a.id = ins.creator_id
   `;
+  // Creating a universe earns the Creator tier (highest, this phase).
+  await promoteTier(data.creatorId, 'creator');
   return rowToUniverse(rows[0]);
 }
 

@@ -1,5 +1,5 @@
 import { sql } from '@/lib/db/client';
-import { Author } from '@/lib/types';
+import { Author, AuthorTier } from '@/lib/types';
 import bcrypt from 'bcryptjs';
 
 function rowToAuthor(row: Record<string, unknown>): Author {
@@ -10,8 +10,25 @@ function rowToAuthor(row: Record<string, unknown>): Author {
     avatarImage: row.avatar_image as string | undefined,
     followCount: Number(row.follow_count),
     loveCount:   Number(row.love_count),
+    tier:        (row.tier as AuthorTier | undefined) ?? 'reader',
     createdAt:   (row.created_at as Date).toISOString(),
   };
+}
+
+// Raise an author to at least `tier`. Monotonic: the WHERE clause leans on the
+// `author_tier` enum's declared order so this never demotes anyone who already
+// stands higher. Best-effort — callers shouldn't fail a creation if this does,
+// so it swallows and logs errors.
+export async function promoteTier(authorId: string, tier: AuthorTier): Promise<void> {
+  try {
+    await sql`
+      UPDATE authors
+      SET tier = ${tier}::author_tier, updated_at = now()
+      WHERE id = ${authorId} AND tier < ${tier}::author_tier
+    `;
+  } catch (e) {
+    console.error(`promoteTier(${authorId}, ${tier}) failed`, e);
+  }
 }
 
 export async function getAuthorByAuthId(authId: string): Promise<Author | null> {

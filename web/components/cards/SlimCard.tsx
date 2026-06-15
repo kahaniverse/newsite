@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { AvatarImage } from '@/components/ui/AvatarImage';
+import { TierBadge } from '@/components/ui/TierBadge';
 import { useReactions } from '@/hooks/useReactions';
 import { hydrateReactions } from '@/lib/reactions/hydrate';
 import type { Author } from '@/lib/types';
@@ -27,7 +28,10 @@ export function SlimCard({ author }: Props) {
         <AvatarImage src={author.avatarImage} alt={author.displayName} size={40} />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-paper-ink truncate">{author.displayName}</p>
-          <p className="text-xs text-paper-muted tabular-nums">{counts.follow.toLocaleString()} followers</p>
+          <div className="flex items-center gap-1.5">
+            {author.tier && <TierBadge tier={author.tier} size="xs" />}
+            <p className="text-xs text-paper-muted tabular-nums">{counts.follow.toLocaleString()} followers</p>
+          </div>
         </div>
       </Link>
       <button

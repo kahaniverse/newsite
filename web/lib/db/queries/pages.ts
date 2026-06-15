@@ -1,6 +1,7 @@
 import { sql } from '@/lib/db/client';
 import { Page } from '@/lib/types';
 import { isUuid } from '@/lib/db/parse';
+import { promoteTier } from '@/lib/db/queries/authors';
 
 function rowToPage(row: Record<string, unknown>, children: Page[] = []): Page {
   return {
@@ -150,6 +151,8 @@ export async function createPage(data: {
     FROM ins JOIN authors a ON a.id = ins.author_id
     WHERE EXISTS (SELECT 1 FROM bump)
   `;
+  // Authoring a page earns (at least) the Writer tier.
+  await promoteTier(data.authorId, 'writer');
   return rowToPage(rows[0]);
 }
 

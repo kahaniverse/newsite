@@ -1,8 +1,20 @@
-// Mirrors what `next dev` does for tsx-run scripts: loads .env.local then
-// .env, without overwriting anything already in process.env.
+// Loads dotenv files for tsx-run scripts (db:migrate, db:seed, …), without
+// overwriting anything already in process.env.
+//
+//   default  → .env.local, then .env   (mirrors `next dev`: local stack)
+//   prod     → .env.production, then .env   (.env.local is skipped so its
+//              localhost DATABASE_URL can't shadow the production one)
+//
+// Select prod with the `--prod` / `--env=production` CLI flag or APP_ENV=production
+// (e.g. `npm run db:migrate:prod`).
 
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+
+const isProd =
+  process.env.APP_ENV === 'production' ||
+  process.argv.includes('--prod') ||
+  process.argv.includes('--env=production');
 
 function applyDotenv(file: string): void {
   if (!existsSync(file)) return;
@@ -24,5 +36,10 @@ function applyDotenv(file: string): void {
 }
 
 const cwd = process.cwd();
-applyDotenv(join(cwd, '.env.local'));
+if (isProd) {
+  console.log('[env] target: production (.env.production)');
+  applyDotenv(join(cwd, '.env.production'));
+} else {
+  applyDotenv(join(cwd, '.env.local'));
+}
 applyDotenv(join(cwd, '.env'));

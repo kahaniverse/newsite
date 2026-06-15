@@ -1,6 +1,7 @@
 import { sql } from '@/lib/db/client';
 import { Story, ContributorRole, Genre } from '@/lib/types';
 import { parsePgTextArray, isUuid } from '@/lib/db/parse';
+import { promoteTier } from '@/lib/db/queries/authors';
 
 function rowToStory(row: Record<string, unknown>): Story {
   const contributors = (row.contributors as Array<{
@@ -126,6 +127,8 @@ export async function createStory(data: {
     WHERE EXISTS (SELECT 1 FROM contrib)
       AND EXISTS (SELECT 1 FROM bump)
   `;
+  // Starting a story earns (at least) the Author tier.
+  await promoteTier(data.creatorId, 'author');
   return rowToStory(rows[0]);
 }
 

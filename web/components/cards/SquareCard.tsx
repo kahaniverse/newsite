@@ -1,4 +1,5 @@
 import { sampleAvatar } from '@/lib/sample-images';
+import { TierBadge } from '@/components/ui/TierBadge';
 import type { Author } from '@/lib/types';
 
 interface Props {
@@ -18,7 +19,7 @@ export function SquareCard({ author, onClick, selected = false }: Props) {
       aria-label={`Author: ${author.displayName}`}
       aria-pressed={selected}
       title={author.displayName}
-      className={`block w-[82px] h-[88px] overflow-hidden rounded-br-[6px] shrink-0 transition-shadow ${
+      className={`relative block w-[82px] h-[88px] overflow-hidden rounded-br-[6px] shrink-0 transition-shadow ${
         selected
           ? 'ring-2 ring-brand shadow-[0_2px_10px_rgba(0,0,0,0.5)]'
           : 'shadow-md hover:shadow-[0_2px_10px_rgba(0,0,0,0.5)]'
@@ -26,6 +27,10 @@ export function SquareCard({ author, onClick, selected = false }: Props) {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={img} alt={author.displayName} loading="lazy" className="w-full h-full object-cover" />
+      {/* Earned tiers only — readers stay unbadged to keep the tile clean. */}
+      {author.tier && author.tier !== 'reader' && (
+        <TierBadge tier={author.tier} size="xs" showLabel={false} className="absolute top-1 left-1 shadow-sm" />
+      )}
     </button>
   );
 }

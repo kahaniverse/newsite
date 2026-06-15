@@ -5,6 +5,7 @@ import { HydrateSelection } from '@/components/shell/HydrateSelection';
 import { SlimList }     from '@/components/lists/SlimList';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { getAuthors }   from '@/lib/db/queries/authors';
+import { TIER_SECTIONS, TIER_META } from '@/lib/tiers';
 import { auth }         from '@/lib/auth/config';
 
 export const metadata: Metadata = { title: 'Authors — Kahaniverse' };
@@ -13,6 +14,12 @@ export default async function AuthorsPage() {
   // Personalized: exclude the signed-in user from their own follow list.
   const session = await auth();
   const { data: authors } = await getAuthors({ page: 1, limit: 40, exclude: session?.user?.id });
+
+  // Split the People list into earned-tier sections (Creators → Readers),
+  // preserving the follow-count order within each. Empty sections are dropped.
+  const sections = TIER_SECTIONS
+    .map(tier => ({ tier, people: authors.filter(a => (a.tier ?? 'reader') === tier) }))
+    .filter(s => s.people.length > 0);
 
   return (
     <>
@@ -27,9 +34,16 @@ export default async function AuthorsPage() {
       {/* Narrow stacked layout (mobile) */}
       <div className="block md:hidden">
         <NarrowShell title="People">
-          <div className="max-w-xl mx-auto py-6">
-            <SectionHeader title="Authors" />
-            <SlimList authors={authors} />
+          <div className="max-w-xl mx-auto py-6 space-y-8">
+            {sections.length === 0 && (
+              <p className="text-sm text-text-muted text-center py-6">No people yet.</p>
+            )}
+            {sections.map(({ tier, people }) => (
+              <section key={tier}>
+                <SectionHeader title={`${TIER_META[tier].plural} · ${people.length}`} />
+                <SlimList authors={people} />
+              </section>
+            ))}
           </div>
         </NarrowShell>
       </div>

@@ -24,7 +24,7 @@ export async function ensureSchema(): Promise<void> {
 export async function truncateAll(): Promise<void> {
   await sql`
     TRUNCATE TABLE
-      reactions, story_characters, story_contributors,
+      notifications, reactions, story_characters, story_contributors,
       pages, characters, stories, universes, authors
     RESTART IDENTITY CASCADE
   `;

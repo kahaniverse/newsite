@@ -4,6 +4,9 @@ export type Genre           = 'fantasy' | 'scienceFiction' | 'romance' | 'thrill
                               'horror' | 'mystery' | 'adventure' | 'historical' | 'literary' | 'other';
 export type StoryStatus     = 'draft' | 'published' | 'completed' | 'abandoned';
 export type ContributorRole = 'creator' | 'coAuthor' | 'fanContributor';
+// Earned, monotonic progression. Order matters: reader < writer < author < creator
+// (mirrors the `author_tier` Postgres enum). See lib/tiers.ts for display metadata.
+export type AuthorTier      = 'reader' | 'writer' | 'author' | 'creator';
 
 export const GENRE_LABELS: Record<Genre, string> = {
   fantasy:        'Fantasy',
@@ -22,12 +25,16 @@ export interface AuthorSummary {
   id:          string;
   displayName: string;
   avatarImage?: string;
+  /** Optional on summaries (bylines/contributors) — only populated where the
+   *  query joins it; always present on the full Author below. */
+  tier?:       AuthorTier;
 }
 
 export interface Author extends AuthorSummary {
   bio?:        string;
   followCount: number;
   loveCount:   number;
+  tier:        AuthorTier;
   createdAt:   string;
 }
 

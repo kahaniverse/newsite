@@ -6,6 +6,7 @@ import { HydrateSelection } from '@/components/shell/HydrateSelection';
 import { CompositeScreen } from '@/components/screens/CompositeScreen';
 import { HeroBlock }   from '@/components/screens/HeroBlock';
 import { StoryList }   from '@/components/lists/StoryList';
+import { TierBadge }  from '@/components/ui/TierBadge';
 import { getAuthorById } from '@/lib/db/queries/authors';
 import { sampleAvatar } from '@/lib/sample-images';
 
@@ -44,7 +45,8 @@ export default async function AuthorPage({ params }: Props) {
             title={author.displayName}
             synopsis={author.bio}
             meta={
-              <div className="flex gap-5 text-sm text-white/85 pt-0.5">
+              <div className="flex items-center gap-5 text-sm text-white/85 pt-0.5">
+                <TierBadge tier={author.tier} />
                 <span><strong className="text-white">{author.followCount.toLocaleString()}</strong> followers</span>
                 <span><strong className="text-white">{author.loveCount.toLocaleString()}</strong> loves</span>
               </div>

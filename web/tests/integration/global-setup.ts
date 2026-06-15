@@ -2,7 +2,7 @@
 // entire integration run, instead of paying ~30s per test file.
 
 import { neon } from '@neondatabase/serverless';
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { configureNeonForLocalDev } from '@/lib/db/configure-neon';
 import { splitStatements } from '@/scripts/migrate';
@@ -20,8 +20,13 @@ export default async function globalSetup() {
   await sql('DROP SCHEMA IF EXISTS public CASCADE');
   await sql('CREATE SCHEMA public');
 
-  const ddl = readFileSync(join(process.cwd(), 'lib/db/migrations/001_initial.sql'), 'utf8');
-  for (const stmt of splitStatements(ddl)) {
-    await sql(stmt);
+  // Apply every migration in order so the test schema matches production.
+  const dir   = join(process.cwd(), 'lib/db/migrations');
+  const files = readdirSync(dir).filter(f => /^\d+.*\.sql$/.test(f)).sort();
+  for (const file of files) {
+    const ddl = readFileSync(join(dir, file), 'utf8');
+    for (const stmt of splitStatements(ddl)) {
+      await sql(stmt);
+    }
   }
 }
