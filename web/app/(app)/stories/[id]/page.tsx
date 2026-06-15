@@ -35,8 +35,9 @@ export default async function StoryPage({ params }: Props) {
 
   const pages  = await getPagesByStory(story.id);
   const root   = pages.find(p => !p.parentId);
-  // The root page plus its direct branches form the "beginnings" to dive into.
-  const beginnings = root ? [root, ...pages.filter(p => p.parentId === root.id)] : [];
+  // The root is the story concept (page 0); its direct children are the
+  // "beginnings" (page 1) to dive into. The concept itself shows as the hero.
+  const beginnings = root ? pages.filter(p => p.parentId === root.id) : [];
   const author = story.contributors[0]?.author;
 
   return (

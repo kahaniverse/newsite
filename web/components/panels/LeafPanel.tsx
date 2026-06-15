@@ -7,6 +7,7 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { SlimList } from '@/components/lists/SlimList';
 import { NotificationList } from '@/components/lists/NotificationList';
+import { PageNavBar } from '@/components/ui/PageNavBar';
 import { usePanelStore } from '@/store';
 import type { Page, Author } from '@/lib/types';
 import { useQuery } from '@tanstack/react-query';
@@ -18,12 +19,9 @@ export function LeafPanel() {
   const [page, setPage] = useState<Page | null>(null);
   const [loading, setLoading]   = useState(false);
 
-  // Page numbering for the "continue" CTA — derived from the story's page tree.
+  // Page numbering + prev/next — derived from the story's page tree.
   const { data: storyPages } = useStoryPages(selectedStoryId);
   const nav = buildPageNav(storyPages?.data ?? []);
-
-  // Fetch root pages of story when story selected but no page yet
-  const [rootPage, setRootPage] = useState<Page | null>(null);
 
   // Hydrate detailMeta so the narrow shell's bottom nav can offer
   // Extend Story / Add Next / Alter This / Edit appropriately.
@@ -44,20 +42,13 @@ export function LeafPanel() {
     return () => setDetailMeta(null);
   }, [page?.id, selectedStoryId, setDetailMeta]); // eslint-disable-line
 
+  // Default the reader to the first beginning (page 1) when a story is opened
+  // with no page yet. The concept (page 0 / root) is the panel-1 hero, never the
+  // reader's content. A deep link that already set selectedPageId keeps its page.
+  const firstBeginning = nav.rootId ? nav.firstChildOf(nav.rootId) : null;
   useEffect(() => {
-    if (!selectedStoryId) return;
-    // Get story pages, use first as root
-    fetch(`/api/stories/${selectedStoryId}/pages`)
-      .then(r => r.ok ? r.json() : null)
-      .then(d => {
-        if (d?.data?.length) {
-          const root = d.data.find((p: Page) => p.parentId === selectedStoryId) ?? d.data[0];
-          setRootPage(root);
-          if (!selectedPageId) setPage(root);
-        }
-      })
-      .catch(() => null);
-  }, [selectedStoryId]); // eslint-disable-line
+    if (selectedStoryId && !selectedPageId && firstBeginning) selectPage(firstBeginning);
+  }, [selectedStoryId, selectedPageId, firstBeginning, selectPage]);
 
   useEffect(() => {
     if (!selectedPageId) return;
@@ -83,7 +74,12 @@ export function LeafPanel() {
 
   if (!page) return null;
 
-  const siblings = page.children ?? [];
+  const num        = nav.numberOf(page.id); // 0 until the page tree loads
+  const prevId     = nav.parentOf(page.id);
+  const nextId     = nav.firstChildOf(page.id);
+  const atTop      = !prevId || prevId === nav.rootId; // level 1 — concept is page 0
+  const alternates = nav.siblingsOf(page.id).filter(p => p.id !== page.id);
+  const continueLabel = num ? `Continue — add page ${num + 1}` : 'Continue this story';
 
   return (
     <div className="flex flex-col gap-5 pb-24 px-1 panel-enter">
@@ -92,29 +88,44 @@ export function LeafPanel() {
         <PageCard page={page} />
       </ErrorBoundary>
 
-      {/* Add page CTA — names the page number it will create. */}
-      {!page.disallowNext && (() => {
-        const num = nav.numberOf(page.id); // 0 until the page tree loads
-        const label = num ? `Continue this story — add page ${num + 1}` : 'Continue this story';
-        return (
+      {/* Control bar: ‹ prev   [ + Continue — add page N+1 ]   next › */}
+      <PageNavBar
+        onPrev={!atTop && prevId ? () => selectPage(prevId) : undefined}
+        onNext={nextId ? () => selectPage(nextId) : undefined}
+        prevDisabled={atTop}
+        nextDisabled={!nextId}
+      >
+        {!page.disallowNext ? (
           <button
             type="button"
             onClick={() => startCompose({ kind: 'page', storyId: page.storyId, parentId: page.id, intent: 'next' })}
-            className="flex items-center justify-center gap-2 py-3 border border-dashed border-border rounded-card text-sm text-text-muted hover:border-accent hover:text-accent transition-colors"
-            aria-label={label}
+            className="flex items-center justify-center gap-2 py-2.5 px-4 w-full border border-dashed border-border rounded-card text-sm text-text-muted hover:border-accent hover:text-accent transition-colors"
+            aria-label={continueLabel}
           >
-            <span aria-hidden>+</span> {label}
+            <span aria-hidden>+</span> {continueLabel}
           </button>
-        );
-      })()}
+        ) : (
+          <span className="text-xs text-text-muted">The story ends here.</span>
+        )}
+      </PageNavBar>
 
-      {/* Sibling / alternate pages */}
-      {!page.disallowAlternate && siblings.length > 0 && (
+      {/* Alternate pages at this level (siblings), plus a way to add one. */}
+      {!page.disallowAlternate && (
         <section>
-          <SectionHeader title="Alternate Next Pages" />
-          <ErrorBoundary>
-            <PageList pages={siblings} onSelect={p => selectPage(p.id)} />
-          </ErrorBoundary>
+          <SectionHeader title={num <= 1 ? 'Alternate Beginnings' : `Alternate pages — page ${num}`} />
+          {alternates.length > 0 && (
+            <ErrorBoundary>
+              <PageList pages={alternates} onSelect={p => selectPage(p.id)} />
+            </ErrorBoundary>
+          )}
+          <button
+            type="button"
+            onClick={() => startCompose({ kind: 'page', storyId: page.storyId, parentId: page.parentId ?? page.storyId, intent: 'alter' })}
+            className="mt-3 flex items-center justify-center gap-2 py-3 w-full border border-dashed border-border rounded-card text-sm text-text-muted hover:border-accent hover:text-accent transition-colors"
+            aria-label={num > 1 ? `Add an alternate page ${num}` : 'Add an alternate beginning'}
+          >
+            <span aria-hidden>+</span> {num > 1 ? `Add alternate page ${num}` : 'Add an alternate beginning'}
+          </button>
         </section>
       )}
     </div>

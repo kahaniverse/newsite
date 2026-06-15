@@ -126,15 +126,29 @@ export async function createPage(data: {
   authorId:     string;
 }): Promise<Page> {
   // The schema FKs parent_id → pages(id) with a single NULL-parent root per
-  // story. Callers pass parentId === storyId as the "begin / from the story"
-  // sentinel; resolve it: create the root (NULL) if none exists yet,
-  // otherwise hang the new page off the existing root.
+  // story. That root is the story "concept" anchor (page 0) and is never an
+  // authored page itself — every authored page hangs off it (page 1 = the
+  // "Beginnings") or deeper. Callers pass parentId === storyId as the "begin /
+  // from the story" sentinel; resolve it to the root's id, creating the concept
+  // anchor first if the story has no pages yet.
   let parent: string | null = data.parentId;
   if (parent === data.storyId) {
     const root = await sql`
       SELECT id FROM pages WHERE story_id = ${data.storyId} AND parent_id IS NULL LIMIT 1
     `;
-    parent = root.length ? (root[0].id as string) : null;
+    if (root.length) {
+      parent = root[0].id as string;
+    } else {
+      // No concept anchor yet — create the page-0 root (not counted toward the
+      // story's page_count), then hang this first authored page off it.
+      const created = await sql`
+        INSERT INTO pages (story_id, parent_id, content, author_id)
+        VALUES (${data.storyId}, NULL,
+                '(Story concept — add pages to begin this story.)', ${data.authorId})
+        RETURNING id
+      `;
+      parent = created[0].id as string;
+    }
   }
 
   const rows = await sql`

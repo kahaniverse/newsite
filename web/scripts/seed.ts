@@ -118,17 +118,19 @@ async function seed() {
       ON CONFLICT DO NOTHING
     `;
 
-    // Root page (parent_id = NULL marks the root)
+    // Concept root (page 0): the structural anchor whose children are the
+    // "Beginnings" (page 1). It is not an authored page itself, so it does not
+    // count toward page_count — a freshly seeded story has 0 pages until an
+    // author adds the first beginning.
     await sql`
       INSERT INTO pages (story_id, parent_id, content, author_id)
       VALUES (${storyId}, NULL,
-              ${`This is the beginning of "${s.title}". The first words of this story are yet to be written. Be the author who starts it.`},
+              ${`The concept for "${s.title}". No pages yet — add the first page to begin this story.`},
               ${authorId})
       ON CONFLICT DO NOTHING
     `;
 
-    // Update page_count
-    await sql`UPDATE stories SET page_count = 1 WHERE id = ${storyId}`;
+    await sql`UPDATE stories SET page_count = 0 WHERE id = ${storyId}`;
     await sql`UPDATE universes SET story_count = story_count + 1 WHERE id = ${uid}`;
   }
 
