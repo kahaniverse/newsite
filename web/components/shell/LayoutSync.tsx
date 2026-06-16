@@ -7,12 +7,19 @@ import { usePanelStore } from '@/store';
 // narrow shell out of a stale deep route when the wide layout is in browse mode.
 const DEEP_ROUTE = /^\/(stories|pages|universes|authors)\/[^/]+/;
 
+// Create/edit forms render as overlay routes (…/new) layered over the current
+// selection. Their URL is owned by the modal, not the panel store, so the mirror
+// must leave them alone — otherwise the outgoing screen's unmount nudges the
+// store and we'd replace the modal away the instant it opens.
+const OVERLAY_ROUTE = /\/new$/;
+
 type PanelSnapshot = ReturnType<typeof usePanelStore.getState>;
 
 // Map the horizontal layout's in-place panel position to the URL the narrow,
 // route-driven shell would use for the same screen. Returns null when there's
-// nothing to do (browse mode already on a browse root).
+// nothing to do (browse mode already on a browse root, or an overlay route).
 function storeToPath(s: PanelSnapshot, path: string): string | null {
+  if (OVERLAY_ROUTE.test(path))                                           return null;
   if (s.selectedPageId)                                                   return `/pages/${s.selectedPageId}`;
   if (s.focused && s.selectedStoryId)                                     return `/stories/${s.selectedStoryId}`;
   if (s.focused && s.focusKind === 'author'   && s.selectedAuthorId)      return `/authors/${s.selectedAuthorId}`;
