@@ -1,5 +1,6 @@
 import { redirect }   from 'next/navigation';
 import { NarrowShell } from '@/components/shell/NarrowShell';
+import { FormDialog }  from '@/components/shell/FormDialog';
 import { ProfileForm } from '@/components/forms/ProfileForm';
 import { auth }        from '@/lib/auth/config';
 import { getAuthorById } from '@/lib/db/queries/authors';
@@ -12,10 +13,22 @@ export default async function EditProfilePage() {
   if (!author) redirect('/login');
 
   return (
-    <NarrowShell title="Edit Profile">
-      <div className="max-w-md mx-auto py-6 px-2">
-        <ProfileForm author={author} />
+    <>
+      {/* Horizontal (tablet + desktop): modal dialog over the panels. */}
+      <div className="hidden md:block">
+        <FormDialog title="Edit Profile">
+          <ProfileForm author={author} />
+        </FormDialog>
       </div>
-    </NarrowShell>
+
+      {/* Narrow (mobile): full-screen shell with bottom nav. */}
+      <div className="block md:hidden">
+        <NarrowShell title="Edit Profile">
+          <div className="max-w-md mx-auto py-6 px-2">
+            <ProfileForm author={author} />
+          </div>
+        </NarrowShell>
+      </div>
+    </>
   );
 }
