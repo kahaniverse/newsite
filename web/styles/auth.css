@@ -242,6 +242,18 @@
 .auth-footer-text a { color: var(--gold-light); text-decoration: none; }
 .auth-footer-text a:hover { text-decoration: underline; }
 
+/* Inline link-styled button (e.g. "Have a recovery code?") — matches the
+   anchor styling above so the anonymous-auth toggles read as links. */
+.auth-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: var(--gold-light);
+}
+.auth-link-btn:hover { text-decoration: underline; }
+
 /* BADGES */
 .universe-badge {
   display: flex;

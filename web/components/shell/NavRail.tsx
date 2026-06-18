@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import type { Session } from 'next-auth';
 import { usePanelStore } from '@/store';
 import { FabIcon } from '@/components/shell/Fab';
+import { PersonaToggle } from '@/components/shell/PersonaToggle';
 import { AvatarImage } from '@/components/ui/AvatarImage';
 import { useStoryPages } from '@/hooks/useStoryPages';
 import { buildPageNav } from '@/lib/page-nav';
@@ -85,8 +86,13 @@ export function NavRail({ session }: Props) {
         </button>
       ))}
 
-      {/* Profile / sign-in pinned to the bottom. */}
+      {/* Kid / Grown-up reading mode, pinned above the profile slot. */}
       <div className="mt-auto">
+        <PersonaToggle variant="compact" />
+      </div>
+
+      {/* Profile / sign-in pinned to the bottom. */}
+      <div>
         {session ? (
           <Link
             href="/profile"

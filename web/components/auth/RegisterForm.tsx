@@ -7,6 +7,7 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { SocialAuthButtons } from './SocialAuthButtons';
 import { TurnstileWidget } from './TurnstileWidget';
+import { generatePenName } from '@/lib/penname';
 
 const schema = z.object({
   displayName: z.string().min(2, 'Min 2 chars').max(64, 'Max 64 chars'),
@@ -23,8 +24,12 @@ export function RegisterForm() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const turnstileRequired = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  // Seed an editable pen name so the user never has to reveal a real name —
+  // generated once on mount (useState initializer) so it's stable across renders.
+  const [defaultName] = useState(generatePenName);
+  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { displayName: defaultName },
   });
 
   async function onSubmit(data: FormData) {
@@ -70,11 +75,19 @@ export function RegisterForm() {
     <form className="auth-form" onSubmit={handleSubmit(onSubmit)} noValidate>
       <div className="field-group">
         <label className="field-label" htmlFor="signupName">Pen Name</label>
-        <input
-          className="field-input"
-          id="signupName" type="text" autoComplete="name"
-          placeholder="Your author name" {...register('displayName')}
-        />
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <input
+            className="field-input"
+            id="signupName" type="text" autoComplete="off"
+            placeholder="Your author name" {...register('displayName')}
+          />
+          <button
+            type="button" className="social-btn" title="Shuffle"
+            aria-label="Suggest another pen name"
+            onClick={() => setValue('displayName', generatePenName(), { shouldValidate: true })}
+          >🎲</button>
+        </div>
+        <p className="auth-footer-text">Your real name is never required or shown.</p>
       </div>
 
       <div className="field-group">
@@ -84,6 +97,10 @@ export function RegisterForm() {
           id="signupEmail" type="email" autoComplete="email"
           placeholder="your@email.com" {...register('email')}
         />
+        <p className="auth-footer-text">
+          The one personal thing we ask for — use any address you&apos;re happy to share. Prefer none?
+          Create an anonymous account below.
+        </p>
       </div>
 
       <div className="field-group">

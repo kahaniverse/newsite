@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GENRE_LABELS, type Genre } from '@/lib/types';
 import { AttestDialog } from './AttestDialog';
-import { inputCls, Err, CoverPreview, Actions, GenrePill } from './UniverseForm';
+import { inputCls, Err, CoverPreview, Actions, GenrePill, MatureField } from './UniverseForm';
 
 const ALL_GENRES = Object.keys(GENRE_LABELS) as Genre[];
 
@@ -15,6 +15,7 @@ const schema = z.object({
   synopsis:   z.string().min(1, 'Required').max(500, 'Max 500 chars'),
   coverImage: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   genreTags:  z.array(z.string()),
+  isMature:   z.boolean(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -36,7 +37,7 @@ export function StoryForm({ universeId: universeIdProp, onCancel, onCreated }: P
 
   const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { genreTags: [] },
+    defaultValues: { genreTags: [], isMature: false },
   });
 
   const cover = watch('coverImage');
@@ -99,6 +100,8 @@ export function StoryForm({ universeId: universeIdProp, onCancel, onCreated }: P
               </div>
             )}
           />
+
+          <MatureField inputProps={register('isMature')} kind="story" />
 
           {serverErr && <p className="text-sm text-error">{serverErr}</p>}
 

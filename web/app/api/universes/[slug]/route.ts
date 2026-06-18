@@ -39,7 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { slug: stri
   if (!parsed.success) return NextResponse.json({ error: parsed.error.message, code: 'VALIDATION' }, { status: 400 });
 
   const updated = await updateUniverse(params.slug, parsed.data);
-  await invalidateCache([CacheKeys.featuredUniverses()]);
+  await invalidateCache(CacheKeys.featuredUniversesAll());
   revalidateTag('universes');
   return NextResponse.json(updated);
 }
@@ -57,7 +57,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { slug: st
   const deleted = await deleteUniverseBySlug(params.slug);
   if (!deleted) return NextResponse.json({ error: 'Not found', code: 'NOT_FOUND' }, { status: 404 });
 
-  await invalidateCache([CacheKeys.featuredUniverses()]);
+  await invalidateCache(CacheKeys.featuredUniversesAll());
   revalidateTag('universes');
   return new NextResponse(null, { status: 204 });
 }

@@ -49,6 +49,7 @@ export interface Universe {
   world?:      string;
   genres:      Genre[];
   creator:     AuthorSummary;
+  isMature:    boolean;
   loveCount:   number;
   followCount: number;
   viewCount:   number;
@@ -65,6 +66,7 @@ export interface Story {
   status:      StoryStatus;
   universe:    Pick<Universe, 'id' | 'slug' | 'name'>;
   contributors: Array<{ author: AuthorSummary; role: ContributorRole }>;
+  isMature:    boolean;
   loveCount:   number;
   followCount: number;
   viewCount:   number;
@@ -117,6 +119,7 @@ export interface CreateUniverseInput {
   era?:       string;
   world?:     string;
   genres:     Genre[];
+  isMature?:  boolean;
 }
 
 export interface CreateStoryInput {
@@ -125,6 +128,7 @@ export interface CreateStoryInput {
   universeId:  string;
   genreTags:   Genre[];
   coverImage?: string;
+  isMature?:   boolean;
 }
 
 export interface CreatePageInput {

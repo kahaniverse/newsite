@@ -3,6 +3,7 @@ import { Genre, Universe } from '@/lib/types';
 import { parsePgTextArray } from '@/lib/db/parse';
 import { getCache, setCache, TTL, CacheKeys } from '@/lib/redis/cache';
 import { promoteTier } from '@/lib/db/queries/authors';
+import { personaIncludesMature, type Persona } from '@/lib/persona';
 
 function rowToUniverse(row: Record<string, unknown>): Universe {
   return {
@@ -19,6 +20,7 @@ function rowToUniverse(row: Record<string, unknown>): Universe {
       displayName: row.creator_name as string,
       avatarImage: row.creator_avatar as string | undefined,
     },
+    isMature:    row.is_mature === true,
     loveCount:   Number(row.love_count),
     followCount: Number(row.follow_count),
     viewCount:   Number(row.view_count),
@@ -33,12 +35,15 @@ export async function getUniverses({
   genre,
   q,
   featured,
+  includeMature = true,
 }: {
   page?:     number;
   limit?:    number;
   genre?:    string;
   q?:        string;
   featured?: boolean;
+  /** false = Kid persona: hide author-rated mature universes. Default shows all. */
+  includeMature?: boolean;
 }): Promise<{ data: Universe[]; total: number }> {
   const offset = (page - 1) * limit;
 
@@ -57,6 +62,7 @@ export async function getUniverses({
     WHERE (${q ?? null}::text IS NULL OR u.name ILIKE ${'%' + (q ?? '') + '%'})
       AND (${genreParam}::text IS NULL OR ${genreParam}::genre = ANY(u.genres))
       AND (${featuredFlag}::boolean = false OR u.story_count > 0)
+      AND (${includeMature}::boolean OR u.is_mature = false)
     ORDER BY
       CASE WHEN ${featuredFlag}::boolean THEN u.view_count + u.love_count ELSE u.view_count END DESC,
       u.created_at DESC
@@ -92,12 +98,16 @@ export const FEATURED_LIMIT = 5;
  * which is why the key only ever holds one well-defined payload. Invalidate via
  * the route's mutation handlers.
  */
-export async function getFeaturedUniverses(): Promise<UniversesPayload> {
-  const key = CacheKeys.featuredUniverses();
+export async function getFeaturedUniverses(persona: Persona = 'grownup'): Promise<UniversesPayload> {
+  // Cache per persona — the Kid list (mature universes hidden) and the Grown-up
+  // list are different payloads and must not share one entry. Both are
+  // invalidated together on mutation (see CacheKeys.featuredUniverses usage).
+  const includeMature = personaIncludesMature(persona);
+  const key = CacheKeys.featuredUniverses(persona);
   const cached = await getCache<UniversesPayload>(key);
   if (cached) return cached;
 
-  const result  = await getUniverses({ page: 1, limit: FEATURED_LIMIT, featured: true });
+  const result  = await getUniverses({ page: 1, limit: FEATURED_LIMIT, featured: true, includeMature });
   const payload: UniversesPayload = {
     ...result, page: 1, limit: FEATURED_LIMIT, hasMore: result.total > FEATURED_LIMIT,
   };
@@ -126,13 +136,14 @@ export async function createUniverse(data: {
   era?:       string;
   world?:     string;
   genres:     string[];
+  isMature?:  boolean;
   creatorId:  string;
 }): Promise<Universe> {
   const rows = await sql`
     WITH ins AS (
-      INSERT INTO universes (slug, name, concept, cover_image, era, world, genres, creator_id)
+      INSERT INTO universes (slug, name, concept, cover_image, era, world, genres, is_mature, creator_id)
       VALUES (${data.slug}, ${data.name}, ${data.concept}, ${data.coverImage},
-              ${data.era ?? null}, ${data.world ?? null}, ${data.genres}, ${data.creatorId})
+              ${data.era ?? null}, ${data.world ?? null}, ${data.genres}, ${data.isMature ?? false}, ${data.creatorId})
       RETURNING *
     )
     SELECT ins.*, a.display_name AS creator_name, a.avatar_image AS creator_avatar

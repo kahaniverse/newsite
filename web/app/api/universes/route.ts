@@ -10,6 +10,7 @@ import {
   getFeaturedUniverses, FEATURED_LIMIT,
 } from '@/lib/db/queries/universes';
 import { notifyNewUniverse } from '@/lib/db/queries/notifications';
+import { personaFromRequest, personaIncludesMature } from '@/lib/persona';
 
 const GENRES = [
   'fantasy','scienceFiction','romance','thriller',
@@ -24,6 +25,7 @@ const CreateSchema = z.object({
   era:        z.string().max(64).optional(),
   world:      z.string().max(64).optional(),
   genres:     z.array(GenreEnum).default([]),
+  isMature:   z.boolean().default(false),
 });
 
 export async function GET(req: NextRequest) {
@@ -39,6 +41,7 @@ export async function GET(req: NextRequest) {
   const q        = sp.get('q') ?? undefined;
   const featured = sp.has('featured');
   const count    = sp.has('count');
+  const persona  = personaFromRequest(req);
 
   if (count) {
     const total = await getUniverseCount();
@@ -52,10 +55,12 @@ export async function GET(req: NextRequest) {
   const isCanonicalFeatured =
     featured && page === 1 && limit === FEATURED_LIMIT && !genre && !q;
   if (isCanonicalFeatured) {
-    return NextResponse.json(await getFeaturedUniverses());
+    return NextResponse.json(await getFeaturedUniverses(persona));
   }
 
-  const result = await getUniverses({ page, limit, genre, q, featured });
+  const result = await getUniverses({
+    page, limit, genre, q, featured, includeMature: personaIncludesMature(persona),
+  });
   const payload = { ...result, page, limit, hasMore: result.total > page * limit };
   return NextResponse.json(payload);
 }
@@ -79,7 +84,7 @@ export async function POST(req: NextRequest) {
       slug,
       creatorId: session!.user.id,
     });
-    await invalidateCache([CacheKeys.featuredUniverses()]);
+    await invalidateCache(CacheKeys.featuredUniversesAll());
     revalidateTag('universes');
     // Notify followers of the creator (best-effort).
     try { await notifyNewUniverse(session!.user.id, universe.id, universe.slug, universe.name); } catch {}

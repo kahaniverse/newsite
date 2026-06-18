@@ -3,6 +3,7 @@ import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
+import { RecoveryAuth } from './RecoveryAuth';
 
 interface Props {
   universeCount: number;
@@ -11,6 +12,8 @@ interface Props {
 
 export function AuthCard({ universeCount, initialTab = 'login' }: Props) {
   const [tab, setTab] = useState<'login' | 'signup'>(initialTab);
+  const [loginMode, setLoginMode]   = useState<'password' | 'recovery'>('password');
+  const [signupMode, setSignupMode] = useState<'email' | 'anon'>('email');
 
   return (
     <section className="auth-section" aria-label="Sign in or create account">
@@ -46,12 +49,29 @@ export function AuthCard({ universeCount, initialTab = 'login' }: Props) {
           aria-labelledby="tabLogin"
           className={tab === 'login' ? '' : 'hidden'}
         >
-          <Suspense fallback={null}>
-            <LoginForm />
-          </Suspense>
-          <p className="auth-footer-text">
-            <Link href="/forgot-password">Forgot password?</Link>
-          </p>
+          {loginMode === 'password' ? (
+            <>
+              <Suspense fallback={null}>
+                <LoginForm />
+              </Suspense>
+              <p className="auth-footer-text">
+                <Link href="/forgot-password">Forgot password?</Link>
+                {' · '}
+                <button type="button" className="auth-link-btn" onClick={() => setLoginMode('recovery')}>
+                  Have a recovery code?
+                </button>
+              </p>
+            </>
+          ) : (
+            <>
+              <RecoveryAuth mode="login" />
+              <p className="auth-footer-text">
+                <button type="button" className="auth-link-btn" onClick={() => setLoginMode('password')}>
+                  ← Back to email sign-in
+                </button>
+              </p>
+            </>
+          )}
         </div>
 
         <div
@@ -60,7 +80,25 @@ export function AuthCard({ universeCount, initialTab = 'login' }: Props) {
           aria-labelledby="tabSignup"
           className={tab === 'signup' ? '' : 'hidden'}
         >
-          <RegisterForm />
+          {signupMode === 'email' ? (
+            <>
+              <RegisterForm />
+              <p className="auth-footer-text">
+                <button type="button" className="auth-link-btn" onClick={() => setSignupMode('anon')}>
+                  Prefer no email? Create an anonymous account →
+                </button>
+              </p>
+            </>
+          ) : (
+            <>
+              <RecoveryAuth mode="create" />
+              <p className="auth-footer-text">
+                <button type="button" className="auth-link-btn" onClick={() => setSignupMode('email')}>
+                  ← Sign up with email instead
+                </button>
+              </p>
+            </>
+          )}
           <p className="auth-footer-text">
             By joining you agree to our <a href="/terms.html">Terms</a> &amp;{' '}
             <a href="/privacy.html">Privacy Policy</a>.

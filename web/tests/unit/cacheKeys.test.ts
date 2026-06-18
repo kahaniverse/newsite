@@ -4,8 +4,16 @@ import { CacheKeys, TTL } from '@/lib/redis/cache';
 // These keys/TTLs are a contract with the spec in CLAUDE.md ("Redis Keys & TTLs").
 // If they drift, cache-aside reads and invalidations silently stop matching.
 describe('CacheKeys', () => {
-  it('featuredUniverses is the documented constant', () => {
-    expect(CacheKeys.featuredUniverses()).toBe('cache:universes:featured');
+  it('featuredUniverses is persona-scoped (defaults to grownup)', () => {
+    expect(CacheKeys.featuredUniverses()).toBe('cache:universes:featured:grownup');
+    expect(CacheKeys.featuredUniverses('kid')).toBe('cache:universes:featured:kid');
+  });
+
+  it('featuredUniversesAll lists every persona key for invalidation', () => {
+    expect(CacheKeys.featuredUniversesAll()).toEqual([
+      'cache:universes:featured:grownup',
+      'cache:universes:featured:kid',
+    ]);
   });
 
   it('storyListPage embeds the page number', () => {

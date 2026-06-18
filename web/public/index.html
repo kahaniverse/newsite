@@ -146,6 +146,53 @@
       </div>
     </section>
 
+    <style>
+      /* Landing is a two-up flex row (book | privacy). Lock both halves to a
+         hard 50% — flex:0 0 50% + min-width:0 so a slide's wider book content
+         can't steal width from the right column (which would reflow its text and
+         jerk the layout on every page change). Scoped here so the shared /login
+         layout (book | auth card) is untouched. */
+      .book-section{flex:0 0 50%;min-width:0}
+      .pv-section{flex:0 0 50%;min-width:0;align-self:center;padding:3rem 2rem 3rem 1rem;text-align:center}
+      @media (max-width:900px){ .book-section{flex:none} .pv-section{flex:none;align-self:auto} }
+      .pv-eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:#b08a86;margin:0 0 .5rem}
+      .pv-headline{font-size:1.7rem;line-height:1.2;margin:0 0 .6rem;color:#f4ece0}
+      .pv-headline em{color:#c2453c;font-style:normal}
+      .pv-sub{max-width:46ch;margin:0 auto 2rem;color:#cabfb0;font-size:1rem;line-height:1.5}
+      .pv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;text-align:left}
+      .pv-card{background:#f4ece0;color:#2a221a;border-radius:14px;padding:1.1rem 1.15rem;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+      .pv-card h3{margin:.1rem 0 .4rem;font-size:1.02rem;color:#7a241f}
+      .pv-card p{margin:0;font-size:.9rem;line-height:1.45;color:#4a3f33}
+      .pv-note{max-width:60ch;margin:1.6rem auto 0;font-size:.8rem;line-height:1.5;color:#a89a88}
+      .pv-note strong{color:#c2453c}
+    </style>
+    <section class="pv-section" aria-label="Privacy and anonymity">
+      <p class="pv-eyebrow">Private by design</p>
+      <h1 class="pv-headline">A social network that knows <em>almost nothing</em> about you.</h1>
+      <p class="pv-sub">Kahaniverse is a secure, anonymous storytelling network. You bring the stories — not your identity.</p>
+
+      <div class="pv-grid" role="list">
+        <article class="pv-card" role="listitem">
+          <h3>Write under a pen name</h3>
+          <p>Pick your own pen name, or take the one we suggest. Your real name is never required and never shown.</p>
+        </article>
+        <article class="pv-card" role="listitem">
+          <h3>We take the sign-in, not your identity</h3>
+          <p>Sign in with Google or X and we receive only that the account is yours — never your name, email, photo, or contacts. Prefer email? Use any address you're happy to share publicly.</p>
+        </article>
+        <article class="pv-card" role="listitem">
+          <h3>No vault worth breaching</h3>
+          <p>We deliberately don't collect personal data, so there's no central trove of identities to steal — because it was never gathered in the first place.</p>
+        </article>
+        <article class="pv-card" role="listitem">
+          <h3>Kid &amp; Grown-up modes</h3>
+          <p>Switch between a kid-safe reading view and the full grown-up library, so younger readers see only what's meant for them.</p>
+        </article>
+      </div>
+
+      <p class="pv-note"><strong>Please note:</strong> we do not verify age by any means. Kid &amp; Grown-up modes are a content filter, not an age check — <strong>parental guidance is advised</strong>.</p>
+    </section>
+
   </main>
 
   <footer>

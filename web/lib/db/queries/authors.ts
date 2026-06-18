@@ -1,5 +1,6 @@
 import { sql } from '@/lib/db/client';
 import { Author, AuthorTier } from '@/lib/types';
+import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
 
 function rowToAuthor(row: Record<string, unknown>): Author {
@@ -99,6 +100,37 @@ export async function updateAuthor(
     RETURNING *
   `;
   return rows.length ? rowToAuthor(rows[0]) : null;
+}
+
+/**
+ * Create a fully anonymous account: no email, no password — only a SHA-256 hash
+ * of a one-time recovery code (the caller shows the plaintext code once and
+ * never stores it). The auth_id is a random opaque `anon:<uuid>`, so nothing in
+ * the row maps back to a real person. Returns the new author plus its auth_id
+ * (needed to mint the session, since anon accounts have no email to key on).
+ */
+export async function createAnonAuthor(data: {
+  displayName:  string;
+  recoveryHash: string;
+}): Promise<Author & { authId: string }> {
+  const authId = `anon:${randomUUID()}`;
+  const rows = await sql`
+    INSERT INTO authors (auth_id, display_name, recovery_hash)
+    VALUES (${authId}, ${data.displayName}, ${data.recoveryHash})
+    RETURNING *
+  `;
+  return { ...rowToAuthor(rows[0]), authId };
+}
+
+/** Resolve an account by the SHA-256 hash of its recovery code (login path). */
+export async function getAuthorByRecoveryHash(
+  recoveryHash: string,
+): Promise<(Author & { authId: string }) | null> {
+  const rows = await sql`
+    SELECT * FROM authors WHERE recovery_hash = ${recoveryHash} LIMIT 1
+  `;
+  if (!rows.length) return null;
+  return { ...rowToAuthor(rows[0]), authId: rows[0].auth_id as string };
 }
 
 export async function verifyPassword(email: string, password: string): Promise<Author | null> {

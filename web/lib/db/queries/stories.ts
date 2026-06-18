@@ -24,6 +24,7 @@ function rowToStory(row: Record<string, unknown>): Story {
       author: { id: c.author_id, displayName: c.display_name, avatarImage: c.avatar_image },
       role:   c.role as ContributorRole,
     })),
+    isMature:    row.is_mature === true,
     loveCount:   Number(row.love_count),
     followCount: Number(row.follow_count),
     viewCount:   Number(row.view_count),
@@ -33,10 +34,12 @@ function rowToStory(row: Record<string, unknown>): Story {
 }
 
 export async function getStories({
-  universeId, page = 1, limit = 10, status, q,
+  universeId, page = 1, limit = 10, status, q, includeMature = true,
 }: {
   universeId?: string; page?: number; limit?: number;
   status?: string; q?: string;
+  /** false = Kid persona: hide author-rated mature stories. Default shows all. */
+  includeMature?: boolean;
 }): Promise<{ data: Story[]; total: number }> {
   const offset = (page - 1) * limit;
   // Single round-trip: COUNT(*) OVER() yields the unpaginated total per row,
@@ -59,6 +62,7 @@ export async function getStories({
     WHERE (${universeId ?? null}::uuid IS NULL OR s.universe_id = ${universeId ?? null}::uuid)
       AND (${status ?? null}::story_status IS NULL OR s.status = ${status ?? null}::story_status)
       AND (${q ?? null}::text IS NULL OR s.title ILIKE ${'%' + (q ?? '') + '%'})
+      AND (${includeMature}::boolean OR s.is_mature = false)
     ORDER BY s.view_count DESC, s.created_at DESC
     LIMIT ${limit} OFFSET ${offset}
   `;
@@ -97,13 +101,13 @@ export async function getStoryById(id: string): Promise<Story | null> {
 
 export async function createStory(data: {
   title: string; synopsis: string; universeId: string;
-  genreTags: string[]; coverImage?: string; creatorId: string;
+  genreTags: string[]; coverImage?: string; isMature?: boolean; creatorId: string;
 }): Promise<Story> {
   const rows = await sql`
     WITH ins AS (
-      INSERT INTO stories (title, synopsis, universe_id, genre_tags, cover_image, status)
+      INSERT INTO stories (title, synopsis, universe_id, genre_tags, cover_image, is_mature, status)
       VALUES (${data.title}, ${data.synopsis}, ${data.universeId},
-              ${data.genreTags}, ${data.coverImage ?? null}, 'draft')
+              ${data.genreTags}, ${data.coverImage ?? null}, ${data.isMature ?? false}, 'draft')
       RETURNING *
     ),
     contrib AS (

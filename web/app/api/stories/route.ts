@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/auth/helpers';
 import { checkRateLimit, rateLimitIdentity } from '@/lib/redis/ratelimit';
 import { getStories, createStory } from '@/lib/db/queries/stories';
 import { notifyNewStory } from '@/lib/db/queries/notifications';
+import { personaFromRequest, personaIncludesMature } from '@/lib/persona';
 
 const GENRES = [
   'fantasy','scienceFiction','romance','thriller',
@@ -18,6 +19,7 @@ const CreateSchema = z.object({
   universeId:  z.string().uuid(),
   genreTags:   z.array(z.enum(GENRES)).default([]),
   coverImage:  z.string().url().optional(),
+  isMature:    z.boolean().default(false),
 });
 
 export async function GET(req: NextRequest) {
@@ -32,8 +34,11 @@ export async function GET(req: NextRequest) {
   }
   const status     = statusParse?.success ? statusParse.data : 'published';
   const q          = sp.get('q') ?? undefined;
+  const persona    = personaFromRequest(req);
 
-  const result = await getStories({ universeId, page, limit, status, q });
+  const result = await getStories({
+    universeId, page, limit, status, q, includeMature: personaIncludesMature(persona),
+  });
   return NextResponse.json({ ...result, page, limit, hasMore: result.total > page * limit });
 }
 

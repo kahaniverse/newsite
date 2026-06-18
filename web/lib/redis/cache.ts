@@ -52,7 +52,10 @@ export async function acquireLock(key: string, ttlSeconds: number): Promise<bool
 }
 
 export const CacheKeys = {
-  featuredUniverses:          () => 'cache:universes:featured',
+  // Persona-scoped: the Kid list (mature hidden) and Grown-up list are distinct
+  // payloads. Mutations invalidate every persona via featuredUniversesAll().
+  featuredUniverses:  (persona: string = 'grownup') => `cache:universes:featured:${persona}`,
+  featuredUniversesAll:       () => ['grownup', 'kid'].map(p => `cache:universes:featured:${p}`),
   storyListPage:   (n: number) => `cache:stories:page:${n}`,
   authorProfile:    (id: string) => `cache:author:${id}`,
   reactionLock:    (uid: string, type: string, tid: string) =>

@@ -17,6 +17,7 @@ const schema = z.object({
   era:        z.string().max(64).optional(),
   world:      z.string().max(64).optional(),
   genres:     z.array(z.string()).min(1, 'Select at least one genre'),
+  isMature:   z.boolean(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -28,7 +29,7 @@ export function UniverseForm() {
 
   const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { genres: [] },
+    defaultValues: { genres: [], isMature: false },
   });
 
   const cover = watch('coverImage');
@@ -96,6 +97,8 @@ export function UniverseForm() {
           />
           {errors.genres && <Err>{errors.genres.message}</Err>}
 
+          <MatureField inputProps={register('isMature')} kind="universe" />
+
           {serverErr && <p className="text-sm text-error">{serverErr}</p>}
 
           <Actions onCancel={() => router.back()} label="Create" />
@@ -156,6 +159,24 @@ export function Actions({ onCancel, label, busy }: { onCancel: () => void; label
         {label}
       </button>
     </div>
+  );
+}
+
+// Author self-rating that drives the Kid/Grown-up content filter. We never
+// verify age, so this is a content label the author applies — stated inline so
+// the contract is clear at the point of authoring.
+export function MatureField({
+  inputProps, kind,
+}: { inputProps: React.ComponentProps<'input'>; kind: 'universe' | 'story' }) {
+  return (
+    <label className="flex items-start gap-2 cursor-pointer select-none">
+      <input type="checkbox" {...inputProps} className="mt-0.5 accent-accent-deep" />
+      <span className="text-xs text-paper-muted leading-snug">
+        <span className="font-medium text-paper-ink">Grown-ups only.</span>{' '}
+        This {kind} has mature themes — readers in Kid mode won&apos;t see it. We don&apos;t
+        verify age; this is a content label, not an age check.
+      </span>
+    </label>
   );
 }
 

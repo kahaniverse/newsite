@@ -7,13 +7,18 @@ import { HydrateSelection }   from '@/components/shell/HydrateSelection';
 import { auth }               from '@/lib/auth/config';
 import { getFeaturedUniverses } from '@/lib/db/queries/universes';
 import { getServerQueryClient } from '@/lib/react-query/server';
+import { getPersona }          from '@/lib/persona.server';
 
 export const revalidate = 300;
 
 export default async function HomePage() {
+  // auth() already reads cookies (dynamic render), so reading the persona cookie
+  // here adds no extra rendering cost. Kid persona hides author-rated-mature
+  // universes from the home carousel.
+  const persona = getPersona();
   const [session, featured] = await Promise.all([
     auth(),
-    getFeaturedUniverses(),
+    getFeaturedUniverses(persona),
   ]);
 
   if (!session) redirect('/index.html');

@@ -2,9 +2,10 @@ import NextAuth, { type NextAuthConfig } from 'next-auth';
 import Google   from 'next-auth/providers/google';
 import Twitter  from 'next-auth/providers/twitter';
 import Credentials from 'next-auth/providers/credentials';
-import { getAuthorByAuthId, createAuthor, verifyPassword } from '@/lib/db/queries/authors';
+import { getAuthorByAuthId, getAuthorById, createAuthor, verifyPassword, getAuthorByRecoveryHash } from '@/lib/db/queries/authors';
 import { verifyTurnstile } from '@/lib/auth/turnstile';
 import { DEMO_MODE, DEMO_AUTHOR_AUTH_ID } from '@/lib/auth/demo';
+import { generatePenName } from '@/lib/penname';
 import { redis } from '@/lib/redis/client';
 import { CacheKeys } from '@/lib/redis/cache';
 import { createHash } from 'crypto';
@@ -75,6 +76,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
 
+    // Anonymous, email-less login: the user presents the one-time recovery code
+    // minted at signup. We hash it and match the stored hash — no identifier is
+    // ever transmitted or stored in the clear. authorize() returns the account's
+    // internal authId so the jwt callback can key the session on it.
+    Credentials({
+      id: 'recovery',
+      name: 'Recovery code',
+      credentials: { code: { label: 'Recovery code', type: 'text' } },
+      async authorize(credentials) {
+        const code = typeof credentials?.code === 'string' ? credentials.code.trim() : '';
+        if (code.length < 8) return null;
+        const hash = createHash('sha256').update(code).digest('hex');
+        const author = await getAuthorByRecoveryHash(hash);
+        if (!author) return null;
+        return { id: author.id, name: author.displayName, image: author.avatarImage, authId: author.authId };
+      },
+    }),
+
     // Demo-only passwordless provider for unattended marketing screencasts.
     // Present ONLY when DEMO_MODE is enabled (see lib/auth/demo.ts); absent in
     // production, so it cannot be used to bypass real login.
@@ -100,16 +119,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
 
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ account }) {
       // OIDC providers (e.g. Google) report type 'oidc', not 'oauth'.
+      // AUTH-ONLY: we take only the opaque provider account id as proof of
+      // ownership. We deliberately do NOT persist the provider's real name,
+      // email, or photo — a new account gets a generated, editable pen name and
+      // no avatar, so nothing here identifies the person behind it.
       if (account?.type === 'oauth' || account?.type === 'oidc') {
         const authId = `${account.provider}:${account.providerAccountId}`;
         const existing = await getAuthorByAuthId(authId);
         if (!existing) {
           await createAuthor({
             authId,
-            displayName: user.name ?? user.email?.split('@')[0] ?? 'Author',
-            avatarImage: user.image ?? undefined,
+            displayName: generatePenName(),
           });
         }
       }
@@ -125,6 +147,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.authId = `${account.provider}:${account.providerAccountId}`;
         } else if (account.provider === 'demo' && DEMO_MODE) {
           token.authId = DEMO_AUTHOR_AUTH_ID;
+        } else if (account.provider === 'recovery') {
+          // Anon accounts have no email to key on — authorize() handed us the
+          // opaque internal authId for exactly this.
+          token.authId = (user as { authId?: string }).authId;
         } else if (account.provider === 'credentials' && user.email) {
           token.authId = `email:${user.email.toLowerCase()}`;
         }
@@ -133,14 +159,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
 
     async session({ session, token }) {
+      // Primary: resolve by our internal authId (set in jwt for oauth/email/demo).
+      // Fallback: token.sub. For credential logins (email AND recovery) we return
+      // the author row's id from authorize(), so NextAuth stores it as token.sub —
+      // this covers recovery accounts whose opaque authId isn't carried on the
+      // token, without re-introducing any identifier.
       const authId = token.authId as string | undefined;
-      if (!authId) return session;
-      const author = await getAuthorByAuthId(authId);
+      const author = authId
+        ? await getAuthorByAuthId(authId)
+        : token.sub
+          ? await getAuthorById(token.sub)
+          : null;
       if (author) {
-        session.user.id          = author.id;
-        session.user.name        = author.displayName;
-        session.user.image       = author.avatarImage;
-        session.user.displayName = author.displayName;
+        // Rebuild user defensively — for recovery sign-ins session.user can
+        // arrive undefined (no email/standard claims), which would otherwise
+        // crash every page that reads session.user.id.
+        session.user = {
+          ...session.user,
+          id:          author.id,
+          name:        author.displayName,
+          displayName: author.displayName,
+          image:       author.avatarImage,
+          email:       session.user?.email ?? '',
+        };
       }
       return session;
     },

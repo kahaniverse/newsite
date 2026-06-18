@@ -7,10 +7,11 @@ import { auth }        from '@/lib/auth/config';
 import { getAuthorById } from '@/lib/db/queries/authors';
 import { sampleAvatar } from '@/lib/sample-images';
 import { ProfileActions } from '@/components/auth/ProfileActions';
+import { PersonaToggle } from '@/components/shell/PersonaToggle';
 
 export default async function ProfilePage() {
   const session = await auth();
-  if (!session) redirect('/login?callbackUrl=/profile');
+  if (!session?.user?.id) redirect('/login?callbackUrl=/profile');
 
   const author = await getAuthorById(session.user.id);
   if (!author) redirect('/login');
@@ -46,6 +47,10 @@ export default async function ProfilePage() {
             + New Universe
           </Link>
         </div>
+        <section aria-label="Reading mode" className="pt-1">
+          <h2 className="text-sm font-semibold text-text-primary mb-2">Reading mode</h2>
+          <PersonaToggle variant="full" />
+        </section>
         <ProfileActions />
       </CompositeScreen>
     </NarrowShell>
