@@ -6,6 +6,7 @@ import { getAuthorByAuthId, getAuthorById, createAuthor, verifyPassword, getAuth
 import { verifyTurnstile } from '@/lib/auth/turnstile';
 import { DEMO_MODE, DEMO_AUTHOR_AUTH_ID } from '@/lib/auth/demo';
 import { generatePenName } from '@/lib/penname';
+import { sampleAvatar } from '@/lib/sample-images';
 import { redis } from '@/lib/redis/client';
 import { CacheKeys } from '@/lib/redis/cache';
 import { createHash } from 'crypto';
@@ -179,7 +180,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id:          author.id,
           name:        author.displayName,
           displayName: author.displayName,
-          image:       author.avatarImage,
+          // Resolve the avatar with the SAME id-seeded fallback the profile/
+          // author screens use, so the nav thumbnail and the profile hero show
+          // the identical portrait when no real avatar has been uploaded.
+          image:       author.avatarImage || sampleAvatar(author.id),
           email:       session.user?.email ?? '',
         };
       }
