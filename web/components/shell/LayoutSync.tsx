@@ -7,11 +7,13 @@ import { usePanelStore } from '@/store';
 // narrow shell out of a stale deep route when the wide layout is in browse mode.
 const DEEP_ROUTE = /^\/(stories|pages|universes|authors)\/[^/]+/;
 
-// Create/edit forms render as overlay routes (…/new) layered over the current
-// selection. Their URL is owned by the modal, not the panel store, so the mirror
-// must leave them alone — otherwise the outgoing screen's unmount nudges the
-// store and we'd replace the modal away the instant it opens.
-const OVERLAY_ROUTE = /\/new$/;
+// Overlay routes render a modal layered over the current selection: the create
+// forms at …/new, and the profile / profile-edit dialogs. Their URL is owned by
+// the modal, not the panel store, so the mirror must leave them alone —
+// otherwise the store still points at the screen the user came from and we'd
+// replace the modal route away the instant it opens (the profile modal would
+// "not come up", bouncing back to home or the focused entity).
+const OVERLAY_ROUTE = /\/new$|^\/profile(?:\/|$)/;
 
 type PanelSnapshot = ReturnType<typeof usePanelStore.getState>;
 
