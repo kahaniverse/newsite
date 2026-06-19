@@ -1,5 +1,6 @@
 import { redirect }   from 'next/navigation';
 import { NarrowShell } from '@/components/shell/NarrowShell';
+import { HorizontalBrowse } from '@/components/shell/HorizontalBrowse';
 import { FormDialog }  from '@/components/shell/FormDialog';
 import { ProfileForm } from '@/components/forms/ProfileForm';
 import { auth }        from '@/lib/auth/config';
@@ -14,8 +15,9 @@ export default async function EditProfilePage() {
 
   return (
     <>
-      {/* Horizontal (tablet + desktop): modal dialog over the panels. */}
+      {/* Horizontal (tablet + desktop): panel frame underneath, modal over it. */}
       <div className="hidden md:block">
+        <HorizontalBrowse session={session} />
         <FormDialog title="Edit Profile">
           <ProfileForm author={author} />
         </FormDialog>
