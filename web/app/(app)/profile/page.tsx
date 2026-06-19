@@ -59,9 +59,14 @@ export default async function ProfilePage() {
       <div className="hidden md:block">
         <HorizontalBrowse session={session} />
         <FormDialog title="Profile">
-          <div className="flex flex-col gap-5">
+          {/* Solid, fully-opaque card so the dimmed panels behind never show
+              through the modal content. Hero bleeds to the rounded edges; the
+              rest sits on the page background with padding. */}
+          <div className="bg-bg-primary rounded-card overflow-hidden">
             <HeroBlock image={photo} aspect="16/9" title={author.displayName} synopsis={author.bio} meta={stats} />
-            {body}
+            <div className="flex flex-col gap-5 p-4">
+              {body}
+            </div>
           </div>
         </FormDialog>
       </div>

@@ -24,7 +24,7 @@ export function FormDialog({ title, children }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/60 p-6"
+      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/80 p-6"
       role="dialog"
       aria-modal="true"
       aria-label={title}
