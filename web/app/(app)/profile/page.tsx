@@ -1,7 +1,6 @@
 import { redirect }   from 'next/navigation';
 import Link            from 'next/link';
 import { NarrowShell } from '@/components/shell/NarrowShell';
-import { HorizontalBrowse } from '@/components/shell/HorizontalBrowse';
 import { FormDialog }  from '@/components/shell/FormDialog';
 import { CompositeScreen } from '@/components/screens/CompositeScreen';
 import { HeroBlock }   from '@/components/screens/HeroBlock';
@@ -53,11 +52,9 @@ export default async function ProfilePage() {
 
   return (
     <>
-      {/* Horizontal (tablet + desktop): the cascading panel frame stays mounted
-          underneath, with the profile shown as a modal dialog over it — instead
-          of the full-screen mobile shell. Dismiss (backdrop / ✕ / Esc) goes back. */}
+      {/* Horizontal (tablet + desktop): modal dialog, like the New Universe form.
+          Dismiss (backdrop / ✕ / Esc) goes back. */}
       <div className="hidden md:block">
-        <HorizontalBrowse session={session} />
         <FormDialog title="Profile">
           <div className="flex flex-col gap-5">
             <HeroBlock image={photo} aspect="16/9" title={author.displayName} synopsis={author.bio} meta={stats} />
