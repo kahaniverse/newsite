@@ -64,7 +64,9 @@ export function AuthCard({ universeCount, initialTab = 'login' }: Props) {
             </>
           ) : (
             <>
-              <RecoveryAuth mode="login" />
+              <Suspense fallback={null}>
+                <RecoveryAuth mode="login" />
+              </Suspense>
               <p className="auth-footer-text">
                 <button type="button" className="auth-link-btn" onClick={() => setLoginMode('password')}>
                   ← Back to email sign-in
@@ -82,7 +84,9 @@ export function AuthCard({ universeCount, initialTab = 'login' }: Props) {
         >
           {signupMode === 'email' ? (
             <>
-              <RegisterForm />
+              <Suspense fallback={null}>
+                <RegisterForm />
+              </Suspense>
               <p className="auth-footer-text">
                 <button type="button" className="auth-link-btn" onClick={() => setSignupMode('anon')}>
                   Prefer no email? Create an anonymous account →
@@ -91,7 +95,9 @@ export function AuthCard({ universeCount, initialTab = 'login' }: Props) {
             </>
           ) : (
             <>
-              <RecoveryAuth mode="create" />
+              <Suspense fallback={null}>
+                <RecoveryAuth mode="create" />
+              </Suspense>
               <p className="auth-footer-text">
                 <button type="button" className="auth-link-btn" onClick={() => setSignupMode('email')}>
                   ← Sign up with email instead

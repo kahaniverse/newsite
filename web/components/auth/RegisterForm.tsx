@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { SocialAuthButtons } from './SocialAuthButtons';
 import { TurnstileWidget } from './TurnstileWidget';
 import { generatePenName } from '@/lib/penname';
@@ -19,7 +19,9 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function RegisterForm() {
-  const router = useRouter();
+  const router      = useRouter();
+  const params      = useSearchParams();
+  const callbackUrl = params.get('callbackUrl') ?? '/';
   const [serverErr, setServerErr] = useState('');
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const turnstileRequired = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -61,7 +63,7 @@ export function RegisterForm() {
       signinToken: json.signinToken ?? '',
       redirect: false,
     });
-    router.push('/');
+    router.push(callbackUrl);
     router.refresh();
   }
 
@@ -131,7 +133,7 @@ export function RegisterForm() {
 
       <div className="auth-divider"><span>or</span></div>
 
-      <SocialAuthButtons callbackUrl="/" />
+      <SocialAuthButtons callbackUrl={callbackUrl} />
     </form>
   );
 }

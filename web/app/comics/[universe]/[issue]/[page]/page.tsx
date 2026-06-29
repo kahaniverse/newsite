@@ -33,8 +33,8 @@ export default async function ComicsPage({ params }: Props) {
         The comics section is on its way. Check back soon for new chapters.
       </p>
 
-      <Link href="/" className="text-accent-light underline">
-        Back to Kahaniverse
+      <Link href="/" className="btn-pill btn-pill-primary">
+        Go to Kahaniverse Home Page and Create Your Own Stories
       </Link>
     </main>
   );

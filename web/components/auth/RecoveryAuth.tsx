@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { generatePenName } from '@/lib/penname';
 import { TurnstileWidget } from './TurnstileWidget';
 
@@ -20,7 +20,9 @@ export function RecoveryAuth({ mode }: { mode: 'create' | 'login' }) {
 }
 
 function CreateFlow() {
-  const router = useRouter();
+  const router      = useRouter();
+  const params      = useSearchParams();
+  const callbackUrl = params.get('callbackUrl') ?? '/';
   const [penName, setPenName]   = useState(generatePenName);
   const [code, setCode]         = useState<string | null>(null);
   const [saved, setSaved]       = useState(false);
@@ -51,7 +53,7 @@ function CreateFlow() {
     const res = await signIn('recovery', { code, redirect: false });
     setBusy(false);
     if (res?.error) { setErr('Signed up, but auto sign-in failed. Use your recovery code to sign in.'); return; }
-    router.push('/');
+    router.push(callbackUrl);
     router.refresh();
   }
 
@@ -120,7 +122,9 @@ function CreateFlow() {
 }
 
 function LoginFlow() {
-  const router = useRouter();
+  const router      = useRouter();
+  const params      = useSearchParams();
+  const callbackUrl = params.get('callbackUrl') ?? '/';
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr]   = useState('');
@@ -132,7 +136,7 @@ function LoginFlow() {
     const res = await signIn('recovery', { code: code.trim(), redirect: false });
     setBusy(false);
     if (res?.error) { setErr('That recovery code didn’t match an account.'); return; }
-    router.push('/');
+    router.push(callbackUrl);
     router.refresh();
   }
 
