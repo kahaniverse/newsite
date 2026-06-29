@@ -9,6 +9,7 @@ import { generatePenName } from '@/lib/penname';
 import { sampleAvatar } from '@/lib/sample-images';
 import { redis } from '@/lib/redis/client';
 import { CacheKeys } from '@/lib/redis/cache';
+import { notifyAdminSignup } from '@/lib/email/client';
 import { createHash } from 'crypto';
 import { z } from 'zod';
 
@@ -130,10 +131,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const authId = `${account.provider}:${account.providerAccountId}`;
         const existing = await getAuthorByAuthId(authId);
         if (!existing) {
-          await createAuthor({
-            authId,
-            displayName: generatePenName(),
-          });
+          const displayName = generatePenName();
+          await createAuthor({ authId, displayName });
+          await notifyAdminSignup({ identifier: displayName, provider: account.provider }).catch(err =>
+            console.error('[signIn] admin notify failed (non-fatal):', err),
+          );
         }
       }
       return true;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createHash, randomInt } from 'crypto';
 import { createAnonAuthor } from '@/lib/db/queries/authors';
+import { notifyAdminSignup } from '@/lib/email/client';
 import { checkRateLimit, rateLimitIdentity } from '@/lib/redis/ratelimit';
 import { verifyTurnstile } from '@/lib/auth/turnstile';
 import { generatePenName } from '@/lib/penname';
@@ -40,6 +41,11 @@ export async function POST(req: NextRequest) {
 
   try {
     const author = await createAnonAuthor({ displayName, recoveryHash });
+
+    await notifyAdminSignup({ identifier: author.displayName, provider: 'recovery' }).catch(err =>
+      console.error('[register-anon] admin notify failed (non-fatal):', err),
+    );
+
     // Return the plaintext code exactly ONCE. It is never stored or logged — the
     // user must save it now; it is the only way back into this account.
     return NextResponse.json(

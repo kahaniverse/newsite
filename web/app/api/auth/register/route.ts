@@ -5,7 +5,7 @@ import { createHash, randomBytes } from 'crypto';
 import { sql } from '@/lib/db/client';
 import { redis } from '@/lib/redis/client';
 import { CacheKeys, TTL } from '@/lib/redis/cache';
-import { sendEmail } from '@/lib/email/client';
+import { sendEmail, notifyAdminSignup } from '@/lib/email/client';
 import { checkRateLimit, rateLimitIdentity } from '@/lib/redis/ratelimit';
 import { verifyTurnstile } from '@/lib/auth/turnstile';
 
@@ -56,6 +56,10 @@ export async function POST(req: NextRequest) {
   // whole step is best-effort.
   await sendVerificationEmail(authorId, email, displayName).catch(err =>
     console.error('[register] verification email failed (non-fatal):', err),
+  );
+
+  await notifyAdminSignup({ identifier: email, provider: 'credentials' }).catch(err =>
+    console.error('[register] admin notify failed (non-fatal):', err),
   );
 
   // Mint a one-time grant the client immediately redeems via signIn('credentials')

@@ -33,3 +33,20 @@ export async function sendEmail(args: SendArgs): Promise<{ ok: boolean }> {
   await resend.emails.send(args);
   return { ok: true };
 }
+
+const ADMIN_EMAIL = 'anshuman.das@gmail.com';
+
+/**
+ * Fire-and-forget notification to the site owner on every new SIGNUP (account
+ * creation) — never on sign-in. `identifier` is the email for credentials
+ * signups, or the generated pen name for OAuth/anonymous signups (the
+ * anonymity design never persists a real OAuth name/email).
+ */
+export async function notifyAdminSignup(args: { identifier: string; provider: string }): Promise<void> {
+  await sendEmail({
+    from:    'Kahaniverse <noreply@kahaniverse.com>',
+    to:      ADMIN_EMAIL,
+    subject: 'KAHANIVERSE',
+    html:    `<p>${args.identifier}</p><p>via ${args.provider}</p>`,
+  });
+}
